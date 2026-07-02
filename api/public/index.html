@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>ASW SMS — Inbox</title>
+  <title>AWS SMS — Inbox</title>
   <link href="https://fonts.googleapis.com/css2?family=EB+Garamond:ital@0;1&family=Figtree:wght@400;500;600;700&display=swap" rel="stylesheet" />
   <style>
     :root {
@@ -201,6 +201,51 @@
       background: var(--color-cream-paper);
       font-size: var(--text-body);
       font-weight: 500;
+      cursor: pointer;
+      transition: border-color 0.15s, background 0.15s;
+    }
+
+    .phone-item:hover {
+      border-color: var(--color-graphite-veil);
+    }
+
+    .phone-item.filter-active {
+      border-color: var(--color-deep-forest-teal);
+      background: var(--color-white);
+      box-shadow: inset 0 0 0 1px var(--color-deep-forest-teal);
+    }
+
+    .phone-item.filter-all .phone-nickname {
+      color: var(--color-deep-forest-teal);
+    }
+
+    .phone-nickname {
+      font-size: var(--text-body);
+      font-weight: 600;
+      margin-bottom: 4px;
+    }
+
+    .phone-nickname-input {
+      width: 100%;
+      font-family: var(--font-figtree);
+      font-size: var(--text-body);
+      font-weight: 600;
+      border: 1px solid var(--color-stone-mist);
+      border-radius: var(--radius-smallbadges);
+      padding: 8px 10px;
+      background: var(--color-white);
+      color: var(--color-midnight-ink);
+    }
+
+    .phone-actions {
+      display: flex;
+      gap: 8px;
+      margin-top: 10px;
+    }
+
+    .btn-small {
+      font-size: 12px;
+      padding: 6px 12px;
     }
 
     .phone-meta {
@@ -232,6 +277,18 @@
 
     .message-body { max-width: 360px; word-break: break-word; }
 
+    .filter-label {
+      font-size: var(--text-caption);
+      font-weight: 500;
+      color: var(--color-smoke);
+      margin-bottom: 16px;
+    }
+
+    .filter-label strong {
+      color: var(--color-midnight-ink);
+      font-weight: 600;
+    }
+
     .empty {
       color: var(--color-smoke);
       font-size: var(--text-caption);
@@ -258,7 +315,7 @@
 <body>
   <div class="nav-wrap">
     <header class="nav">
-      <div class="wordmark"><span class="muted">ASW</span><span class="accent">SMS</span></div>
+      <div class="wordmark"><span class="muted">AWS</span><span class="accent">SMS</span></div>
       <div class="nav-actions">
         <div class="nav-status" id="status">Loading…</div>
         <button class="btn btn-ghost" type="button" id="refresh-btn">Refresh</button>
@@ -299,9 +356,14 @@
     const phoneListEl = document.getElementById('phone-list');
     const messagesWrap = document.getElementById('messages-wrap');
     const toast = document.getElementById('toast');
+    let phoneNumbers = [];
+    let nicknameLookup = new Map();
+    let regionLookup = new Map();
+    let selectedFilter = null;
+    let allMessages = [];
 
-    async function apiFetch(url) {
-      const res = await fetch(url);
+    async function apiFetch(url, options) {
+      const res = await fetch(url, options);
       if (res.status === 401) {
         window.location.href = '/login.html';
         throw new Error('Sign in required');
@@ -323,25 +385,157 @@
       try { return new Date(iso).toLocaleString(); } catch { return iso; }
     }
 
+    function nicknameFor(number) {
+      return nicknameLookup.get(number) ?? number;
+    }
+
+    function regionFor(number) {
+      return regionLookup.get(number) ?? '';
+    }
+
+    function filterLabel() {
+      if (!selectedFilter) return 'Showing <strong>all messages</strong>';
+      const nickname = nicknameFor(selectedFilter);
+      return `Showing messages to <strong>${escapeHtml(nickname)}</strong>`;
+    }
+
+    function filteredMessages(messages) {
+      if (!selectedFilter) return messages;
+      return messages.filter((m) => m.toNumber === selectedFilter);
+    }
+
+    function updateStatus(messages) {
+      const visible = filteredMessages(messages);
+      if (selectedFilter) {
+        statusEl.textContent = `${visible.length} of ${messages.length} message${messages.length === 1 ? '' : 's'}`;
+      } else {
+        statusEl.textContent = `${messages.length} message${messages.length === 1 ? '' : 's'}`;
+      }
+    }
+
     function renderPhones(numbers) {
+      phoneNumbers = numbers;
+      nicknameLookup = new Map(numbers.map((p) => [p.phoneNumber, p.nickname]));
+      regionLookup = new Map(numbers.map((p) => [p.phoneNumber, p.region]));
+      const allActive = !selectedFilter ? ' filter-active' : '';
+      const allItem = `
+        <li class="phone-item filter-all${allActive}" data-action="filter-all">
+          <div class="phone-nickname">All messages</div>
+          <div class="phone-meta">Every pool number</div>
+        </li>
+      `;
       if (!numbers.length) {
-        phoneListEl.innerHTML = '<li class="empty">No numbers configured.</li>';
+        phoneListEl.innerHTML = allItem + '<li class="empty">No numbers configured.</li>';
         return;
       }
-      phoneListEl.innerHTML = numbers.map((p) => `
-        <li class="phone-item">
-          <div>${escapeHtml(p.phoneNumber)}</div>
-          <div class="phone-meta">${escapeHtml(p.label)}</div>
+      phoneListEl.innerHTML = allItem + numbers.map((p) => `
+        <li class="phone-item${selectedFilter === p.phoneNumber ? ' filter-active' : ''}" data-phone="${escapeHtml(p.phoneNumber)}">
+          <div class="phone-nickname" data-role="label">${escapeHtml(p.nickname)}</div>
+          <div class="phone-meta">${escapeHtml(p.phoneNumber)}</div>
+          <div class="phone-meta">${escapeHtml(p.region)}</div>
+          <div class="phone-actions">
+            <button class="btn btn-ghost btn-small" type="button" data-action="edit">Rename</button>
+          </div>
         </li>
       `).join('');
     }
 
-    function renderMessages(messages) {
-      if (!messages.length) {
-        messagesWrap.innerHTML = '<p class="empty">No messages yet. Text one of your pool numbers to create an entry.</p>';
+    async function saveNickname(phoneNumber, nickname) {
+      const res = await apiFetch('/api/phone-numbers/nickname', {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ phoneNumber, nickname }),
+      });
+      if (!res.ok) {
+        const body = await res.json().catch(() => ({}));
+        throw new Error(body.error || 'Could not save nickname');
+      }
+      const { phoneNumber: updated } = await res.json();
+      phoneNumbers = phoneNumbers.map((p) =>
+        p.phoneNumber === updated.phoneNumber ? updated : p,
+      );
+      nicknameLookup.set(updated.phoneNumber, updated.nickname);
+      if (updated.region) regionLookup.set(updated.phoneNumber, updated.region);
+      renderPhones(phoneNumbers);
+      renderMessages(allMessages);
+      showToast(`Renamed to “${updated.nickname}”`);
+    }
+
+    phoneListEl.addEventListener('click', (event) => {
+      if (event.target.closest('[data-action="edit"], [data-action="save"], [data-action="cancel"], [data-role="input"]')) {
         return;
       }
-      messagesWrap.innerHTML = `
+      if (event.target.closest('[data-action="filter-all"]')) {
+        selectedFilter = null;
+        renderPhones(phoneNumbers);
+        renderMessages(allMessages);
+        updateStatus(allMessages);
+        return;
+      }
+      const item = event.target.closest('.phone-item[data-phone]');
+      if (!item) return;
+      selectedFilter = item.dataset.phone;
+      renderPhones(phoneNumbers);
+      renderMessages(allMessages);
+      updateStatus(allMessages);
+    });
+
+    phoneListEl.addEventListener('click', async (event) => {
+      const button = event.target.closest('[data-action="edit"]');
+      if (!button) return;
+      const item = button.closest('.phone-item');
+      const phoneNumber = item?.dataset.phone;
+      const current = phoneNumbers.find((p) => p.phoneNumber === phoneNumber);
+      if (!current) return;
+
+      item.querySelector('[data-role="label"]').outerHTML = `
+        <input class="phone-nickname-input" data-role="input" value="${escapeHtml(current.nickname)}" maxlength="64" />
+      `;
+      button.outerHTML = `
+        <button class="btn btn-primary btn-small" type="button" data-action="save">Save</button>
+        <button class="btn btn-ghost btn-small" type="button" data-action="cancel">Cancel</button>
+      `;
+      item.querySelector('[data-role="input"]')?.focus();
+    });
+
+    phoneListEl.addEventListener('click', async (event) => {
+      const button = event.target.closest('[data-action="save"], [data-action="cancel"]');
+      if (!button) return;
+      const item = button.closest('.phone-item');
+      const phoneNumber = item?.dataset.phone;
+      if (button.dataset.action === 'cancel') {
+        renderPhones(phoneNumbers);
+        return;
+      }
+      const input = item.querySelector('[data-role="input"]');
+      const nickname = input?.value.trim();
+      if (!nickname) {
+        showToast('Nickname cannot be empty');
+        return;
+      }
+      try {
+        button.disabled = true;
+        await saveNickname(phoneNumber, nickname);
+      } catch (err) {
+        showToast(err.message || 'Failed to save nickname');
+        renderPhones(phoneNumbers);
+      }
+    });
+
+    function renderMessages(messages) {
+      allMessages = messages;
+      const visible = filteredMessages(messages);
+      const filterHtml = `<p class="filter-label">${filterLabel()}</p>`;
+
+      if (!messages.length) {
+        messagesWrap.innerHTML = filterHtml + '<p class="empty">No messages yet. Text one of your pool numbers to create an entry.</p>';
+        return;
+      }
+      if (!visible.length) {
+        messagesWrap.innerHTML = filterHtml + '<p class="empty">No messages for this number yet.</p>';
+        return;
+      }
+      messagesWrap.innerHTML = filterHtml + `
         <table class="messages-table">
           <thead>
             <tr>
@@ -352,11 +546,11 @@
             </tr>
           </thead>
           <tbody>
-            ${messages.map((m) => `
+            ${visible.map((m) => `
               <tr>
                 <td>${fmtDate(m.receivedAt)}</td>
                 <td>${escapeHtml(m.fromNumber)}</td>
-                <td>${escapeHtml(m.toNumber)}</td>
+                <td>${escapeHtml(nicknameFor(m.toNumber))}<div class="phone-meta">${escapeHtml(m.toNumber)}</div><div class="phone-meta">${escapeHtml(regionFor(m.toNumber))}</div></td>
                 <td class="message-body">${escapeHtml(m.messageBody)}</td>
               </tr>
             `).join('')}
@@ -395,7 +589,11 @@
         const { messages } = await messagesRes.json();
         const { phoneNumbers } = await phonesRes.json();
 
-        statusEl.textContent = `${messages.length} message${messages.length === 1 ? '' : 's'}`;
+        if (selectedFilter && !phoneNumbers.some((p) => p.phoneNumber === selectedFilter)) {
+          selectedFilter = null;
+        }
+
+        updateStatus(messages);
         renderPhones(phoneNumbers);
         renderMessages(messages);
       } catch (err) {

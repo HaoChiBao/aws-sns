@@ -8,7 +8,8 @@ export interface InboundMessage {
 
 export interface PhoneNumberEntry {
   phoneNumber: string;
-  label: string;
+  nickname: string;
+  region: string;
 }
 
 function readerBaseUrl(): string {
@@ -44,4 +45,24 @@ export async function listPhoneNumbers(): Promise<PhoneNumberEntry[]> {
   }
   const data = (await res.json()) as { phoneNumbers: PhoneNumberEntry[] };
   return data.phoneNumbers ?? [];
+}
+
+export async function updatePhoneNumberNickname(
+  phoneNumber: string,
+  nickname: string,
+): Promise<PhoneNumberEntry> {
+  const res = await fetch(`${readerBaseUrl()}/phone-numbers/nickname`, {
+    method: 'PUT',
+    headers: {
+      ...readerHeaders(),
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({ phoneNumber, nickname }),
+  });
+  if (!res.ok) {
+    const body = (await res.json().catch(() => ({}))) as { error?: string };
+    throw new Error(body.error ?? `Failed to update nickname (${res.status})`);
+  }
+  const data = (await res.json()) as { phoneNumber: PhoneNumberEntry };
+  return data.phoneNumber;
 }

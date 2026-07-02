@@ -12,7 +12,7 @@ import {
   sessionCookieHeader,
   verifyDashboardPassword,
 } from './auth.js';
-import { listMessages, listPhoneNumbers } from './data.js';
+import { listMessages, listPhoneNumbers, updatePhoneNumberNickname } from './data.js';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 
@@ -92,6 +92,27 @@ app.get('/api/messages', async (_req, res) => {
     console.error('GET /api/messages:', error);
     res.status(503).json({
       error: error instanceof Error ? error.message : 'Failed to load messages',
+      code: 'READER_API_ERROR',
+    });
+  }
+});
+
+app.put('/api/phone-numbers/nickname', async (req, res) => {
+  try {
+    const { phoneNumber, nickname } = req.body as {
+      phoneNumber?: string;
+      nickname?: string;
+    };
+    if (!phoneNumber?.trim() || !nickname?.trim()) {
+      res.status(400).json({ error: 'phoneNumber and nickname are required' });
+      return;
+    }
+    const updated = await updatePhoneNumberNickname(phoneNumber.trim(), nickname.trim());
+    res.json({ phoneNumber: updated });
+  } catch (error) {
+    console.error('PUT /api/phone-numbers/nickname:', error);
+    res.status(503).json({
+      error: error instanceof Error ? error.message : 'Failed to update nickname',
       code: 'READER_API_ERROR',
     });
   }

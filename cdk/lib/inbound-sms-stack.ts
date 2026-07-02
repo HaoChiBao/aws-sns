@@ -22,8 +22,18 @@ export class InboundSmsStack extends cdk.Stack {
     super(scope, id, props);
 
     const phoneNumbers =
-      props?.phoneNumbers ?? '+12362051147,+18257730586';
+      props?.phoneNumbers ?? '+12362051147,+18257730586,+12043390267,+12365065683';
     const readerApiKey = props?.readerApiKey;
+
+    const nicknamesTable = new dynamodb.Table(this, 'InboundSmsNicknamesTable', {
+      tableName: 'InboundSmsNicknames',
+      partitionKey: {
+        name: 'phoneNumber',
+        type: dynamodb.AttributeType.STRING,
+      },
+      billingMode: dynamodb.BillingMode.PAY_PER_REQUEST,
+      removalPolicy: cdk.RemovalPolicy.RETAIN,
+    });
 
     const table = new dynamodb.Table(this, 'InboundSmsMessagesTable', {
       tableName: 'InboundSmsMessages',
@@ -81,6 +91,7 @@ export class InboundSmsStack extends cdk.Stack {
       memorySize: 256,
       environment: {
         DYNAMODB_TABLE_NAME: table.tableName,
+        NICKNAMES_TABLE_NAME: nicknamesTable.tableName,
         PHONE_NUMBERS: phoneNumbers,
         ...(readerApiKey ? { READER_API_KEY: readerApiKey } : {}),
       },
@@ -92,12 +103,24 @@ export class InboundSmsStack extends cdk.Stack {
     });
 
     table.grantReadData(readerApi);
+    nicknamesTable.grantReadWriteData(readerApi);
+
+    readerApi.addToRolePolicy(
+      new iam.PolicyStatement({
+        actions: ['sms-voice:DescribePhoneNumbers'],
+        resources: ['*'],
+      }),
+    );
 
     const httpApi = new apigwv2.HttpApi(this, 'InboundSmsReadApi', {
       apiName: 'inbound-sms-read',
       corsPreflight: {
         allowHeaders: ['content-type', 'x-api-key'],
-        allowMethods: [apigwv2.CorsHttpMethod.GET, apigwv2.CorsHttpMethod.OPTIONS],
+        allowMethods: [
+          apigwv2.CorsHttpMethod.GET,
+          apigwv2.CorsHttpMethod.PUT,
+          apigwv2.CorsHttpMethod.OPTIONS,
+        ],
         allowOrigins: ['*'],
       },
     });
@@ -110,6 +133,12 @@ export class InboundSmsStack extends cdk.Stack {
     httpApi.addRoutes({
       path: '/messages',
       methods: [apigwv2.HttpMethod.GET],
+      integration: readerIntegration,
+    });
+
+    httpApi.addRoutes({
+      path: '/phone-numbers/nickname',
+      methods: [apigwv2.HttpMethod.PUT],
       integration: readerIntegration,
     });
 
@@ -133,6 +162,11 @@ export class InboundSmsStack extends cdk.Stack {
     new cdk.CfnOutput(this, 'InboundSmsMessagesTableName', {
       value: table.tableName,
       description: 'DynamoDB table storing inbound SMS messages',
+    });
+
+    new cdk.CfnOutput(this, 'InboundSmsNicknamesTableName', {
+      value: nicknamesTable.tableName,
+      description: 'DynamoDB table storing phone number nicknames',
     });
 
     new cdk.CfnOutput(this, 'ReaderApiUrl', {
