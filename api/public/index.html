@@ -257,7 +257,7 @@
     .panel-body {
       flex: 1;
       overflow-y: auto;
-      padding: 0 var(--pane-pad) var(--spacing-24);
+      padding: var(--spacing-16) var(--pane-pad) var(--spacing-24);
       min-height: 0;
       background: var(--color-cream-paper);
     }
@@ -277,10 +277,11 @@
       background: var(--color-white);
       border: 1px solid var(--color-stone-mist);
       border-radius: var(--radius-nav);
-      padding: 18px 18px 16px;
+      padding: 18px;
       cursor: pointer;
       transition: border-color 0.15s, box-shadow 0.15s;
       display: block;
+      box-shadow: 0 1px 2px rgba(0, 0, 0, 0.04);
     }
     .card-item:hover {
       border-color: var(--color-graphite-veil);
@@ -314,68 +315,73 @@
       font-weight: 500;
     }
 
-    .card-body {
-      margin-top: 12px;
-      padding-top: 12px;
-      border-top: 1px solid var(--color-stone-mist);
-      font-size: var(--text-body);
-      font-weight: 400;
-      color: var(--color-midnight-ink);
-      line-height: 1.45;
-      display: -webkit-box;
-      -webkit-line-clamp: 3;
-      -webkit-box-orient: vertical;
-      overflow: hidden;
-    }
-
     .card-actions {
       margin-top: 14px;
     }
 
-    /* Activity message layout — clear header vs body grouping */
-    .msg-card .msg-header {
+    /* One cohesive message unit */
+    .msg-card {
       display: flex;
       flex-direction: column;
-      gap: 8px;
+      gap: 0;
+      padding: 0;
+      overflow: hidden;
+    }
+
+    .msg-card .msg-top {
+      padding: 16px 18px 12px;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
     }
 
     .msg-card .msg-from {
-      font-size: var(--text-body);
+      font-size: 16px;
       font-weight: 600;
       color: var(--color-midnight-ink);
       letter-spacing: -0.01em;
+      line-height: 1.2;
     }
 
-    .msg-card .msg-line {
+    .msg-card .msg-status {
       display: flex;
-      flex-wrap: wrap;
       align-items: center;
-      gap: 8px;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+
+    .msg-card .msg-sub {
       font-size: 12px;
       font-weight: 500;
-      color: var(--color-smoke);
+      line-height: 1.3;
+      color: var(--color-graphite-veil);
     }
 
     .msg-card .msg-text {
-      margin-top: 14px;
+      margin: 0 12px 12px;
       padding: 12px 14px;
       background: var(--color-cream-paper);
+      border: 1px solid var(--color-stone-mist);
       border-radius: var(--radius-smallbadges);
-      font-size: var(--text-body);
+      font-size: 15px;
       line-height: 1.45;
       color: var(--color-midnight-ink);
       word-break: break-word;
     }
 
     .pill {
+      display: inline-flex;
+      align-items: center;
       font-size: 11px;
       font-weight: 600;
       letter-spacing: 0.04em;
       text-transform: uppercase;
-      padding: 4px 8px;
+      padding: 4px 10px;
       border-radius: var(--radius-badges);
       background: rgba(3, 79, 70, 0.1);
       color: var(--color-deep-forest-teal);
+      line-height: 1;
+      flex-shrink: 0;
     }
     .pill.out {
       background: var(--color-stone-mist);
@@ -748,10 +754,10 @@
       const allActive = !selectedPool ? ' active' : '';
       let html = `
         <li>
-          <button type="button" class="card-item${allActive}" data-action="filter-all">
+          <div class="card-item${allActive}" data-action="filter-all" role="button" tabindex="0">
             <div class="card-title">All messages</div>
-            <div class="card-meta">Every pool number</div>
-          </button>
+            <div class="card-meta" style="margin-top:6px">Every pool number</div>
+          </div>
         </li>
       `;
 
@@ -801,19 +807,19 @@
         const pool = messagePool(m);
         const dir = messageDirection(m);
         const active = selectedPool === pool && selectedRemote === remote ? ' active' : '';
+        const dest = !selectedPool ? ` · to ${escapeHtml(nicknameFor(pool))}` : '';
         return `
           <li>
-            <button type="button" class="card-item msg-card${active}" data-action="open-chat" data-pool="${escapeHtml(pool)}" data-remote="${escapeHtml(remote)}">
-              <div class="msg-header">
+            <div class="card-item msg-card${active}" data-action="open-chat" data-pool="${escapeHtml(pool)}" data-remote="${escapeHtml(remote)}" role="button" tabindex="0">
+              <div class="msg-top">
                 <div class="msg-from">${phoneCopyHtml(remote)}</div>
-                <div class="msg-line">
+                <div class="msg-status">
                   <span class="pill${dir === 'outbound' ? ' out' : ''}">${dir === 'outbound' ? 'Sent' : 'Received'}</span>
-                  <span>${escapeHtml(fmtDate(m.receivedAt))}</span>
-                  ${!selectedPool ? `<span>· to ${escapeHtml(nicknameFor(pool))}</span>` : ''}
+                  <span class="msg-sub">${escapeHtml(fmtDate(m.receivedAt))}${dest}</span>
                 </div>
               </div>
               <div class="msg-text">${escapeHtml(m.messageBody)}</div>
-            </button>
+            </div>
           </li>
         `;
       }).join('')}</ul>`;
