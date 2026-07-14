@@ -4,18 +4,20 @@ import {
   PutCommand,
 } from '@aws-sdk/lib-dynamodb';
 import { generateDefaultNickname } from './nicknames.js';
-import { lookupPhoneNumberRegions } from './phone-number-lookup.js';
+import { lookupPhoneNumberInfo } from './phone-number-lookup.js';
 
 export interface PhoneNumberRecord {
   phoneNumber: string;
   nickname: string;
   region: string;
+  createdAt?: string;
 }
 
 interface PhoneRecordItem {
   phoneNumber: string;
   nickname: string;
   region?: string;
+  createdAt?: string;
   updatedAt?: string;
 }
 
@@ -32,14 +34,16 @@ export async function loadPhoneNumbers(
   configuredNumbers: string[],
 ): Promise<PhoneNumberRecord[]> {
   const stored = await getStoredRecords(docClient, nicknamesTableName, configuredNumbers);
-  const missingRegions = configuredNumbers.filter((n) => !stored.get(n)?.region);
+  const needsAwsLookup = configuredNumbers.filter(
+    (n) => !stored.get(n)?.region || !stored.get(n)?.createdAt,
+  );
 
-  let awsRegions = new Map<string, string>();
-  if (missingRegions.length) {
+  let awsInfo = new Map<string, { region: string; createdAt?: string }>();
+  if (needsAwsLookup.length) {
     try {
-      awsRegions = await lookupPhoneNumberRegions(missingRegions);
+      awsInfo = await lookupPhoneNumberInfo(needsAwsLookup);
     } catch (error) {
-      console.error('Failed to look up phone number regions:', error);
+      console.error('Failed to look up phone number info:', error);
     }
   }
 
@@ -47,18 +51,28 @@ export async function loadPhoneNumbers(
 
   for (const phoneNumber of configuredNumbers) {
     const existing = stored.get(phoneNumber);
+    const aws = awsInfo.get(phoneNumber);
     const nickname = existing?.nickname ?? generateDefaultNickname(phoneNumber);
-    const region = existing?.region ?? awsRegions.get(phoneNumber) ?? 'Unknown';
+    const region = existing?.region ?? aws?.region ?? 'Unknown';
+    const createdAt =
+      existing?.createdAt ?? aws?.createdAt ?? new Date().toISOString();
 
-    if (!existing?.nickname || !existing?.region || existing.region !== region) {
+    const needsWrite =
+      !existing?.nickname ||
+      !existing?.region ||
+      existing.region !== region ||
+      !existing?.createdAt;
+
+    if (needsWrite) {
       await saveRecord(docClient, nicknamesTableName, {
         phoneNumber,
         nickname,
         region,
+        createdAt,
       });
     }
 
-    records.push({ phoneNumber, nickname, region });
+    records.push({ phoneNumber, nickname, region, createdAt });
   }
 
   return records;
@@ -83,14 +97,16 @@ export async function updateNickname(
   const stored = await getStoredRecords(docClient, nicknamesTableName, [phoneNumber]);
   const existing = stored.get(phoneNumber);
   const region = existing?.region ?? 'Unknown';
+  const createdAt = existing?.createdAt ?? new Date().toISOString();
 
   await saveRecord(docClient, nicknamesTableName, {
     phoneNumber,
     nickname: trimmed,
     region,
+    createdAt,
   });
 
-  return { phoneNumber, nickname: trimmed, region };
+  return { phoneNumber, nickname: trimmed, region, createdAt };
 }
 
 async function getStoredRecords(

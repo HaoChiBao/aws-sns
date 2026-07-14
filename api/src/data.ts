@@ -10,6 +10,7 @@ export interface PhoneNumberEntry {
   phoneNumber: string;
   nickname: string;
   region: string;
+  createdAt?: string;
 }
 
 function readerBaseUrl(): string {

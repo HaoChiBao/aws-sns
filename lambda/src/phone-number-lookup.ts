@@ -4,12 +4,17 @@ import {
 } from '@aws-sdk/client-pinpoint-sms-voice-v2';
 import { countryCodeToName } from './regions.js';
 
-export async function lookupPhoneNumberRegions(
+export interface PhoneNumberLookupInfo {
+  region: string;
+  createdAt?: string;
+}
+
+export async function lookupPhoneNumberInfo(
   phoneNumbers: string[],
   region = process.env.AWS_REGION ?? 'us-east-2',
-): Promise<Map<string, string>> {
+): Promise<Map<string, PhoneNumberLookupInfo>> {
   const wanted = new Set(phoneNumbers);
-  const result = new Map<string, string>();
+  const result = new Map<string, PhoneNumberLookupInfo>();
   if (!wanted.size) return result;
 
   const client = new PinpointSMSVoiceV2Client({ region });
@@ -26,12 +31,38 @@ export async function lookupPhoneNumberRegions(
     for (const entry of response.PhoneNumbers ?? []) {
       const number = entry.PhoneNumber;
       if (!number || !wanted.has(number)) continue;
-      const name = countryCodeToName(entry.IsoCountryCode);
-      if (name) result.set(number, name);
+
+      const regionName = countryCodeToName(entry.IsoCountryCode);
+      const createdAt =
+        entry.CreatedTimestamp instanceof Date
+          ? entry.CreatedTimestamp.toISOString()
+          : entry.CreatedTimestamp
+            ? new Date(entry.CreatedTimestamp).toISOString()
+            : undefined;
+
+      if (regionName || createdAt) {
+        result.set(number, {
+          region: regionName ?? 'Unknown',
+          ...(createdAt ? { createdAt } : {}),
+        });
+      }
     }
 
     nextToken = response.NextToken;
   } while (nextToken && result.size < wanted.size);
 
+  return result;
+}
+
+/** @deprecated Prefer lookupPhoneNumberInfo — kept for callers that only need region. */
+export async function lookupPhoneNumberRegions(
+  phoneNumbers: string[],
+  region = process.env.AWS_REGION ?? 'us-east-2',
+): Promise<Map<string, string>> {
+  const info = await lookupPhoneNumberInfo(phoneNumbers, region);
+  const result = new Map<string, string>();
+  for (const [number, entry] of info) {
+    if (entry.region) result.set(number, entry.region);
+  }
   return result;
 }

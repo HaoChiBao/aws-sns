@@ -14,7 +14,7 @@ const region =
 const phoneNumbers =
   app.node.tryGetContext('phoneNumbers') ??
   process.env.PHONE_NUMBERS ??
-  '+12362051147,+18257730586,+12043390267,+12365065683';
+  '+12362051147,+18257730586,+12365065683,+12044100737,+18674701051';
 
 const readerApiKey =
   app.node.tryGetContext('readerApiKey') ?? process.env.READER_API_KEY;

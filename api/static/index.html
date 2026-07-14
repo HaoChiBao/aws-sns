@@ -188,6 +188,32 @@
       margin-bottom: 20px;
     }
 
+    .phone-sort {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      margin-bottom: 16px;
+    }
+
+    .phone-sort label {
+      font-size: 12px;
+      font-weight: 500;
+      color: var(--color-smoke);
+    }
+
+    .phone-sort select {
+      font-family: var(--font-figtree);
+      font-size: var(--text-caption);
+      font-weight: 500;
+      color: var(--color-midnight-ink);
+      background: var(--color-cream-paper);
+      border: 1px solid var(--color-stone-mist);
+      border-radius: var(--radius-smallbadges);
+      padding: 8px 10px;
+      width: 100%;
+      cursor: pointer;
+    }
+
     .phone-list {
       list-style: none;
       display: grid;
@@ -375,6 +401,13 @@
     <aside class="card">
       <div class="badge">Numbers</div>
       <h2>Phone pool</h2>
+      <div class="phone-sort">
+        <label for="phone-sort">Sort by</label>
+        <select id="phone-sort">
+          <option value="date-added" selected>Date added</option>
+          <option value="last-messaged">Last messaged</option>
+        </select>
+      </div>
       <ul class="phone-list" id="phone-list">
         <li class="empty">Loading…</li>
       </ul>
@@ -392,6 +425,7 @@
   <script type="module">
     const statusEl = document.getElementById('status');
     const phoneListEl = document.getElementById('phone-list');
+    const phoneSortEl = document.getElementById('phone-sort');
     const messagesWrap = document.getElementById('messages-wrap');
     const toast = document.getElementById('toast');
     let phoneNumbers = [];
@@ -399,6 +433,7 @@
     let regionLookup = new Map();
     let selectedFilter = null;
     let allMessages = [];
+    let phoneSort = phoneSortEl?.value || 'date-added';
 
     async function apiFetch(url, options) {
       const res = await fetch(url, options);
@@ -466,10 +501,42 @@
       }
     }
 
+    function lastMessagedByPhone(messages) {
+      const map = new Map();
+      for (const m of messages) {
+        const current = map.get(m.toNumber);
+        if (!current || m.receivedAt > current) {
+          map.set(m.toNumber, m.receivedAt);
+        }
+      }
+      return map;
+    }
+
+    function sortPhoneNumbers(numbers, sortMode, lastMessaged) {
+      return [...numbers].sort((a, b) => {
+        if (sortMode === 'last-messaged') {
+          const aTs = lastMessaged.get(a.phoneNumber) ?? '';
+          const bTs = lastMessaged.get(b.phoneNumber) ?? '';
+          if (aTs === bTs) return a.phoneNumber.localeCompare(b.phoneNumber);
+          if (!aTs) return 1;
+          if (!bTs) return -1;
+          return bTs.localeCompare(aTs);
+        }
+        const aTs = a.createdAt ?? '';
+        const bTs = b.createdAt ?? '';
+        if (aTs === bTs) return a.phoneNumber.localeCompare(b.phoneNumber);
+        if (!aTs) return 1;
+        if (!bTs) return -1;
+        return bTs.localeCompare(aTs);
+      });
+    }
+
     function renderPhones(numbers) {
       phoneNumbers = numbers;
       nicknameLookup = new Map(numbers.map((p) => [p.phoneNumber, p.nickname]));
       regionLookup = new Map(numbers.map((p) => [p.phoneNumber, p.region]));
+      const lastMessaged = lastMessagedByPhone(allMessages);
+      const sorted = sortPhoneNumbers(numbers, phoneSort, lastMessaged);
       const allActive = !selectedFilter ? ' filter-active' : '';
       const allItem = `
         <li class="phone-item filter-all${allActive}" data-action="filter-all">
@@ -477,20 +544,27 @@
           <div class="phone-meta">Every pool number</div>
         </li>
       `;
-      if (!numbers.length) {
+      if (!sorted.length) {
         phoneListEl.innerHTML = allItem + '<li class="empty">No numbers configured.</li>';
         return;
       }
-      phoneListEl.innerHTML = allItem + numbers.map((p) => `
+      phoneListEl.innerHTML = allItem + sorted.map((p) => {
+        const last = lastMessaged.get(p.phoneNumber);
+        const addedLabel = p.createdAt ? fmtDate(p.createdAt) : 'Unknown';
+        const lastLabel = last ? fmtDate(last) : 'Never';
+        return `
         <li class="phone-item${selectedFilter === p.phoneNumber ? ' filter-active' : ''}" data-phone="${escapeHtml(p.phoneNumber)}">
           <div class="phone-nickname" data-role="label">${escapeHtml(p.nickname)}</div>
           <div class="phone-meta">${phoneCopyHtml(p.phoneNumber)}</div>
           <div class="phone-meta">${escapeHtml(p.region)}</div>
+          <div class="phone-meta">Added ${escapeHtml(addedLabel)}</div>
+          <div class="phone-meta">Last messaged ${escapeHtml(lastLabel)}</div>
           <div class="phone-actions">
             <button class="btn btn-ghost btn-small" type="button" data-action="edit">Rename</button>
           </div>
         </li>
-      `).join('');
+      `;
+      }).join('');
     }
 
     async function saveNickname(phoneNumber, nickname) {
@@ -577,6 +651,7 @@
 
     function renderMessages(messages) {
       allMessages = messages;
+      renderPhones(phoneNumbers);
       const visible = filteredMessages(messages);
       const filterHtml = `<p class="filter-label">${filterLabel()}</p>`;
 
@@ -662,6 +737,11 @@
       event.preventDefault();
       event.stopPropagation();
       await copyPhoneNumber(btn.dataset.phone);
+    });
+
+    phoneSortEl?.addEventListener('change', () => {
+      phoneSort = phoneSortEl.value;
+      renderPhones(phoneNumbers);
     });
 
     document.getElementById('refresh-btn').addEventListener('click', refresh);
