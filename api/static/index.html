@@ -255,6 +255,44 @@
       margin-top: 6px;
     }
 
+    .phone-copy {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .phone-copy .copy-btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 22px;
+      height: 22px;
+      padding: 0;
+      border: none;
+      background: transparent;
+      color: var(--color-graphite-veil);
+      border-radius: 4px;
+      cursor: pointer;
+      opacity: 0;
+      transition: opacity 0.15s, color 0.15s, background 0.15s;
+      flex-shrink: 0;
+    }
+
+    .phone-copy:hover .copy-btn,
+    .phone-copy .copy-btn:focus {
+      opacity: 1;
+    }
+
+    .phone-copy .copy-btn:hover {
+      color: var(--color-midnight-ink);
+      background: var(--color-stone-mist);
+    }
+
+    .phone-copy .copy-btn svg {
+      width: 14px;
+      height: 14px;
+    }
+
     .messages-table {
       width: 100%;
       border-collapse: collapse;
@@ -381,6 +419,21 @@
       return String(str).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
     }
 
+    const COPY_ICON = '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>';
+
+    function phoneCopyHtml(phoneNumber) {
+      return `<span class="phone-copy"><span>${escapeHtml(phoneNumber)}</span><button class="copy-btn" type="button" data-action="copy-phone" data-phone="${escapeHtml(phoneNumber)}" title="Copy phone number" aria-label="Copy phone number">${COPY_ICON}</button></span>`;
+    }
+
+    async function copyPhoneNumber(phoneNumber) {
+      try {
+        await navigator.clipboard.writeText(phoneNumber);
+        showToast(`Copied ${phoneNumber}`);
+      } catch {
+        showToast('Could not copy');
+      }
+    }
+
     function fmtDate(iso) {
       try { return new Date(iso).toLocaleString(); } catch { return iso; }
     }
@@ -431,7 +484,7 @@
       phoneListEl.innerHTML = allItem + numbers.map((p) => `
         <li class="phone-item${selectedFilter === p.phoneNumber ? ' filter-active' : ''}" data-phone="${escapeHtml(p.phoneNumber)}">
           <div class="phone-nickname" data-role="label">${escapeHtml(p.nickname)}</div>
-          <div class="phone-meta">${escapeHtml(p.phoneNumber)}</div>
+          <div class="phone-meta">${phoneCopyHtml(p.phoneNumber)}</div>
           <div class="phone-meta">${escapeHtml(p.region)}</div>
           <div class="phone-actions">
             <button class="btn btn-ghost btn-small" type="button" data-action="edit">Rename</button>
@@ -462,7 +515,7 @@
     }
 
     phoneListEl.addEventListener('click', (event) => {
-      if (event.target.closest('[data-action="edit"], [data-action="save"], [data-action="cancel"], [data-role="input"]')) {
+      if (event.target.closest('[data-action="edit"], [data-action="save"], [data-action="cancel"], [data-role="input"], [data-action="copy-phone"]')) {
         return;
       }
       if (event.target.closest('[data-action="filter-all"]')) {
@@ -549,8 +602,8 @@
             ${visible.map((m) => `
               <tr>
                 <td>${fmtDate(m.receivedAt)}</td>
-                <td>${escapeHtml(m.fromNumber)}</td>
-                <td>${escapeHtml(nicknameFor(m.toNumber))}<div class="phone-meta">${escapeHtml(m.toNumber)}</div><div class="phone-meta">${escapeHtml(regionFor(m.toNumber))}</div></td>
+                <td>${phoneCopyHtml(m.fromNumber)}</td>
+                <td>${escapeHtml(nicknameFor(m.toNumber))}<div class="phone-meta">${phoneCopyHtml(m.toNumber)}</div><div class="phone-meta">${escapeHtml(regionFor(m.toNumber))}</div></td>
                 <td class="message-body">${escapeHtml(m.messageBody)}</td>
               </tr>
             `).join('')}
@@ -602,6 +655,14 @@
         showToast(err.message || 'Failed to load');
       }
     }
+
+    document.addEventListener('click', async (event) => {
+      const btn = event.target.closest('[data-action="copy-phone"]');
+      if (!btn) return;
+      event.preventDefault();
+      event.stopPropagation();
+      await copyPhoneNumber(btn.dataset.phone);
+    });
 
     document.getElementById('refresh-btn').addEventListener('click', refresh);
     document.getElementById('logout-btn').addEventListener('click', async () => {
