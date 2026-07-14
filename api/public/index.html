@@ -259,13 +259,14 @@
       overflow-y: auto;
       padding: 0 var(--pane-pad) var(--spacing-24);
       min-height: 0;
+      background: var(--color-cream-paper);
     }
 
     .stack {
       list-style: none;
       display: flex;
       flex-direction: column;
-      gap: 12px;
+      gap: 16px;
     }
 
     .card-item {
@@ -273,18 +274,18 @@
       text-align: left;
       font-family: var(--font-figtree);
       color: inherit;
-      background: var(--color-cream-paper);
+      background: var(--color-white);
       border: 1px solid var(--color-stone-mist);
       border-radius: var(--radius-nav);
-      padding: 16px;
+      padding: 18px 18px 16px;
       cursor: pointer;
-      transition: border-color 0.15s, background 0.15s, box-shadow 0.15s;
+      transition: border-color 0.15s, box-shadow 0.15s;
+      display: block;
     }
     .card-item:hover {
       border-color: var(--color-graphite-veil);
     }
     .card-item.active {
-      background: var(--color-white);
       border-color: var(--color-deep-forest-teal);
       box-shadow: inset 0 0 0 1px var(--color-deep-forest-teal);
     }
@@ -293,7 +294,7 @@
       font-size: var(--text-body);
       font-weight: 600;
       line-height: 1.25;
-      margin-bottom: 6px;
+      color: var(--color-midnight-ink);
     }
 
     .card-meta {
@@ -307,26 +308,63 @@
     }
 
     .card-preview {
-      margin-top: 10px;
+      margin-top: 6px;
       font-size: var(--text-caption);
       color: var(--color-graphite-veil);
       font-weight: 500;
     }
 
     .card-body {
-      margin-top: 10px;
-      font-size: var(--text-caption);
+      margin-top: 12px;
+      padding-top: 12px;
+      border-top: 1px solid var(--color-stone-mist);
+      font-size: var(--text-body);
+      font-weight: 400;
       color: var(--color-midnight-ink);
-      line-height: 1.4;
+      line-height: 1.45;
       display: -webkit-box;
-      -webkit-line-clamp: 2;
+      -webkit-line-clamp: 3;
       -webkit-box-orient: vertical;
       overflow: hidden;
     }
 
     .card-actions {
       margin-top: 14px;
-      padding-top: 2px;
+    }
+
+    /* Activity message layout — clear header vs body grouping */
+    .msg-card .msg-header {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    .msg-card .msg-from {
+      font-size: var(--text-body);
+      font-weight: 600;
+      color: var(--color-midnight-ink);
+      letter-spacing: -0.01em;
+    }
+
+    .msg-card .msg-line {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: 8px;
+      font-size: 12px;
+      font-weight: 500;
+      color: var(--color-smoke);
+    }
+
+    .msg-card .msg-text {
+      margin-top: 14px;
+      padding: 12px 14px;
+      background: var(--color-cream-paper);
+      border-radius: var(--radius-smallbadges);
+      font-size: var(--text-body);
+      line-height: 1.45;
+      color: var(--color-midnight-ink);
+      word-break: break-word;
     }
 
     .pill {
@@ -728,7 +766,7 @@
           <li>
             <div class="card-item${selectedPool === p.phoneNumber ? ' active' : ''}" data-phone="${escapeHtml(p.phoneNumber)}" role="button" tabindex="0">
               <div class="card-title" data-role="label">${escapeHtml(p.nickname)}</div>
-              <div class="card-meta">${phoneCopyHtml(p.phoneNumber)}</div>
+              <div class="card-meta" style="margin-top:6px">${phoneCopyHtml(p.phoneNumber)}</div>
               <div class="card-preview">${last ? `Last messaged ${escapeHtml(fmtDate(last))}` : 'No messages yet'}</div>
               <div class="card-actions">
                 <button class="btn btn-small btn-quiet" type="button" data-action="edit">Rename</button>
@@ -765,14 +803,16 @@
         const active = selectedPool === pool && selectedRemote === remote ? ' active' : '';
         return `
           <li>
-            <button type="button" class="card-item${active}" data-action="open-chat" data-pool="${escapeHtml(pool)}" data-remote="${escapeHtml(remote)}">
-              <div class="card-meta">
-                <span class="card-title" style="margin:0">${phoneCopyHtml(remote)}</span>
-                <span class="pill${dir === 'outbound' ? ' out' : ''}">${dir === 'outbound' ? 'Sent' : 'Received'}</span>
-                <span>${escapeHtml(fmtDate(m.receivedAt))}</span>
+            <button type="button" class="card-item msg-card${active}" data-action="open-chat" data-pool="${escapeHtml(pool)}" data-remote="${escapeHtml(remote)}">
+              <div class="msg-header">
+                <div class="msg-from">${phoneCopyHtml(remote)}</div>
+                <div class="msg-line">
+                  <span class="pill${dir === 'outbound' ? ' out' : ''}">${dir === 'outbound' ? 'Sent' : 'Received'}</span>
+                  <span>${escapeHtml(fmtDate(m.receivedAt))}</span>
+                  ${!selectedPool ? `<span>· to ${escapeHtml(nicknameFor(pool))}</span>` : ''}
+                </div>
               </div>
-              ${!selectedPool ? `<div class="card-preview">to ${escapeHtml(nicknameFor(pool))}</div>` : ''}
-              <div class="card-body">${escapeHtml(m.messageBody)}</div>
+              <div class="msg-text">${escapeHtml(m.messageBody)}</div>
             </button>
           </li>
         `;
