@@ -13,25 +13,14 @@
       --color-stone-mist: #e4e4d0;
       --color-graphite-veil: #8a8a80;
       --color-smoke: #5f5f59;
-      --color-charcoal: #222222;
       --color-deep-forest-teal: #034f46;
       --color-lavender-whisper: #f0d7ff;
-      --color-amber-pulse: #ffa946;
       --font-figtree: 'Figtree', ui-sans-serif, system-ui, sans-serif;
       --font-eb-garamond: 'EB Garamond', Georgia, serif;
-      --text-caption: 14px;
-      --leading-caption: 1.3;
-      --text-body: 16px;
-      --leading-body: 1.3;
-      --text-subheading: 20px;
-      --text-heading-sm: 24px;
-      --radius-nav: 14px;
-      --radius-cards: 32px;
-      --radius-buttons: 14px;
-      --radius-smallbadges: 8px;
-      --page-max-width: 1200px;
-      --card-padding: 32px;
-      --nav-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+      --text-caption: 13px;
+      --text-body: 15px;
+      --radius: 12px;
+      --border: 1px solid var(--color-stone-mist);
     }
 
     * { box-sizing: border-box; margin: 0; padding: 0; }
@@ -40,16 +29,19 @@
       background: var(--color-cream-paper);
       color: var(--color-midnight-ink);
       font-family: var(--font-figtree);
-      font-weight: 400;
       font-size: var(--text-body);
-      line-height: var(--leading-body);
+      line-height: 1.4;
       min-height: 100vh;
     }
 
-    .nav-wrap {
-      padding: var(--spacing-24, 24px) 50px 0;
-      max-width: var(--page-max-width);
+    .app {
+      max-width: 1280px;
       margin: 0 auto;
+      padding: 20px 24px 40px;
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+      min-height: 100vh;
     }
 
     .nav {
@@ -57,242 +49,206 @@
       justify-content: space-between;
       align-items: center;
       background: var(--color-white);
-      border: 1px solid var(--color-stone-mist);
-      border-radius: var(--radius-nav);
-      padding: 10px 16px;
-      box-shadow: var(--nav-shadow);
+      border: var(--border);
+      border-radius: var(--radius);
+      padding: 10px 14px;
     }
 
     .wordmark {
-      font-size: 16px;
+      font-size: 15px;
       font-weight: 600;
-      letter-spacing: -0.01em;
     }
-
     .wordmark .muted { color: var(--color-graphite-veil); }
-    .wordmark .accent { color: var(--color-midnight-ink); }
 
     .nav-actions {
       display: flex;
-      gap: 12px;
+      gap: 10px;
       align-items: center;
     }
 
     .nav-status {
       font-size: var(--text-caption);
-      font-weight: 500;
       color: var(--color-smoke);
+      font-weight: 500;
     }
 
     .btn {
       font-family: var(--font-figtree);
       font-size: var(--text-caption);
       font-weight: 600;
-      line-height: 1;
-      border-radius: var(--radius-buttons);
-      padding: 10px 18px;
+      border-radius: 10px;
+      padding: 8px 14px;
       cursor: pointer;
-      transition: opacity 0.15s;
-    }
-
-    .btn:hover { opacity: 0.85; }
-
-    .btn-ghost {
-      background: transparent;
       border: 1px solid var(--color-midnight-ink);
+      background: transparent;
       color: var(--color-midnight-ink);
     }
-
+    .btn:hover { opacity: 0.85; }
+    .btn:disabled { opacity: 0.4; cursor: not-allowed; }
     .btn-primary {
       background: var(--color-lavender-whisper);
-      border: 1px solid var(--color-midnight-ink);
-      color: var(--color-midnight-ink);
+    }
+    .btn-small { padding: 6px 10px; font-size: 12px; }
+    .btn-ghost-soft {
+      border-color: transparent;
+      color: var(--color-smoke);
+      padding: 4px 8px;
     }
 
     .banner {
       background: var(--color-deep-forest-teal);
       color: var(--color-white);
-      padding: 14px 24px;
+      padding: 12px 16px;
       text-align: center;
       font-size: var(--text-caption);
       font-weight: 500;
-      margin-top: 24px;
+      border-radius: var(--radius);
     }
-
     .banner[hidden] { display: none; }
 
-    .hero {
-      max-width: var(--page-max-width);
-      margin: 0 auto;
-      padding: 64px 50px 48px;
-      text-align: center;
-    }
-
-    .hero h1 {
-      font-family: var(--font-eb-garamond);
-      font-weight: 400;
-      font-size: clamp(48px, 8vw, 72px);
-      line-height: 0.95;
-      letter-spacing: -0.05em;
-      font-feature-settings: "liga" on, "dlig" on;
-    }
-
-    .hero h1 .muted { color: var(--color-graphite-veil); }
-    .hero h1 .accent { color: var(--color-midnight-ink); }
-
-    .hero p {
-      margin-top: 20px;
-      color: var(--color-midnight-ink);
-      font-size: 18px;
-      max-width: 52ch;
-      margin-left: auto;
-      margin-right: auto;
-    }
-
-    .layout {
-      max-width: var(--page-max-width);
-      margin: 0 auto;
-      padding: 0 50px 80px;
+    .shell {
+      flex: 1;
       display: grid;
-      grid-template-columns: 300px 1fr;
-      gap: 32px;
-    }
-
-    @media (max-width: 800px) {
-      .layout { grid-template-columns: 1fr; }
-      .nav-wrap, .hero, .layout { padding-left: 20px; padding-right: 20px; }
-    }
-
-    .card {
+      grid-template-columns: 240px minmax(280px, 1fr) minmax(300px, 1.1fr);
+      gap: 0;
+      min-height: calc(100vh - 120px);
       background: var(--color-white);
-      border: 1px solid var(--color-stone-mist);
-      border-radius: var(--radius-cards);
-      padding: var(--card-padding);
+      border: var(--border);
+      border-radius: 16px;
+      overflow: hidden;
     }
 
-    .badge {
-      display: inline-block;
-      font-size: 12px;
-      font-weight: 500;
-      color: var(--color-white);
-      background: var(--color-deep-forest-teal);
-      border-radius: 1000px;
-      padding: 6px 14px;
-      margin-bottom: 16px;
+    @media (max-width: 960px) {
+      .shell {
+        grid-template-columns: 1fr;
+        min-height: auto;
+      }
+      .pane-chat[data-empty="true"] { display: none; }
     }
 
-    h2 {
-      font-size: var(--text-subheading);
-      font-weight: 600;
-      line-height: 1;
-      margin-bottom: 20px;
-    }
-
-    .phone-sort {
+    .pane {
       display: flex;
       flex-direction: column;
-      gap: 6px;
-      margin-bottom: 16px;
+      min-height: 0;
+      border-right: var(--border);
+    }
+    .pane:last-child { border-right: none; }
+
+    .pane-head {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px;
+      padding: 14px 16px;
+      border-bottom: var(--border);
+      min-height: 52px;
     }
 
-    .phone-sort label {
-      font-size: 12px;
-      font-weight: 500;
+    .pane-head h2 {
+      font-size: 13px;
+      font-weight: 600;
+      letter-spacing: 0.02em;
+      text-transform: uppercase;
       color: var(--color-smoke);
     }
 
+    .pane-head .title {
+      font-size: 15px;
+      font-weight: 600;
+      color: var(--color-midnight-ink);
+      text-transform: none;
+      letter-spacing: 0;
+    }
+
+    .pane-body {
+      flex: 1;
+      overflow-y: auto;
+      min-height: 0;
+    }
+
+    .phone-sort {
+      padding: 10px 16px;
+      border-bottom: var(--border);
+    }
     .phone-sort select {
+      width: 100%;
       font-family: var(--font-figtree);
       font-size: var(--text-caption);
-      font-weight: 500;
+      border: var(--border);
+      border-radius: 8px;
+      padding: 7px 10px;
+      background: var(--color-cream-paper);
       color: var(--color-midnight-ink);
-      background: var(--color-cream-paper);
-      border: 1px solid var(--color-stone-mist);
-      border-radius: var(--radius-smallbadges);
-      padding: 8px 10px;
+    }
+
+    .list { list-style: none; }
+
+    .row {
       width: 100%;
+      text-align: left;
+      background: transparent;
+      border: none;
+      border-bottom: var(--border);
+      padding: 12px 16px;
       cursor: pointer;
+      font-family: var(--font-figtree);
+      color: inherit;
+      display: block;
     }
-
-    .phone-list {
-      list-style: none;
-      display: grid;
-      gap: 12px;
-    }
-
-    .phone-item {
-      padding: 16px;
-      border-radius: var(--radius-nav);
-      border: 1px solid var(--color-stone-mist);
+    .row:hover { background: var(--color-cream-paper); }
+    .row.active {
       background: var(--color-cream-paper);
-      font-size: var(--text-body);
-      font-weight: 500;
-      cursor: pointer;
-      transition: border-color 0.15s, background 0.15s;
+      box-shadow: inset 3px 0 0 var(--color-deep-forest-teal);
     }
 
-    .phone-item:hover {
-      border-color: var(--color-graphite-veil);
-    }
-
-    .phone-item.filter-active {
-      border-color: var(--color-deep-forest-teal);
-      background: var(--color-white);
-      box-shadow: inset 0 0 0 1px var(--color-deep-forest-teal);
-    }
-
-    .phone-item.filter-all .phone-nickname {
-      color: var(--color-deep-forest-teal);
-    }
-
-    .phone-nickname {
-      font-size: var(--text-body);
+    .row-title {
+      font-size: 14px;
       font-weight: 600;
-      margin-bottom: 4px;
+      margin-bottom: 2px;
+    }
+    .row-meta {
+      font-size: 12px;
+      color: var(--color-smoke);
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+      align-items: center;
+    }
+    .row-preview {
+      font-size: 12px;
+      color: var(--color-graphite-veil);
+      margin-top: 4px;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .phone-row-actions {
+      margin-top: 8px;
     }
 
     .phone-nickname-input {
       width: 100%;
       font-family: var(--font-figtree);
-      font-size: var(--text-body);
+      font-size: 14px;
       font-weight: 600;
-      border: 1px solid var(--color-stone-mist);
-      border-radius: var(--radius-smallbadges);
-      padding: 8px 10px;
+      border: var(--border);
+      border-radius: 8px;
+      padding: 6px 8px;
       background: var(--color-white);
-      color: var(--color-midnight-ink);
-    }
-
-    .phone-actions {
-      display: flex;
-      gap: 8px;
-      margin-top: 10px;
-    }
-
-    .btn-small {
-      font-size: 12px;
-      padding: 6px 12px;
-    }
-
-    .phone-meta {
-      font-size: var(--text-caption);
-      font-weight: 500;
-      color: var(--color-smoke);
-      margin-top: 6px;
     }
 
     .phone-copy {
       display: inline-flex;
       align-items: center;
-      gap: 6px;
+      gap: 4px;
     }
-
     .phone-copy .copy-btn {
       display: inline-flex;
       align-items: center;
       justify-content: center;
-      width: 22px;
-      height: 22px;
+      width: 18px;
+      height: 18px;
       padding: 0;
       border: none;
       background: transparent;
@@ -300,156 +256,54 @@
       border-radius: 4px;
       cursor: pointer;
       opacity: 0;
-      transition: opacity 0.15s, color 0.15s, background 0.15s;
-      flex-shrink: 0;
     }
-
     .phone-copy:hover .copy-btn,
-    .phone-copy .copy-btn:focus {
-      opacity: 1;
-    }
+    .phone-copy .copy-btn:focus { opacity: 1; }
+    .phone-copy .copy-btn svg { width: 12px; height: 12px; }
 
-    .phone-copy .copy-btn:hover {
+    .activity-item .from {
+      font-weight: 600;
+      font-size: 14px;
+    }
+    .activity-item .body {
+      margin-top: 4px;
+      font-size: 13px;
       color: var(--color-midnight-ink);
+      display: -webkit-box;
+      -webkit-line-clamp: 2;
+      -webkit-box-orient: vertical;
+      overflow: hidden;
+    }
+    .dir-pill {
+      font-size: 10px;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+      color: var(--color-deep-forest-teal);
+      background: rgba(3, 79, 70, 0.08);
+      padding: 2px 6px;
+      border-radius: 999px;
+    }
+    .dir-pill.out {
+      color: var(--color-smoke);
       background: var(--color-stone-mist);
     }
 
-    .phone-copy .copy-btn svg {
-      width: 14px;
-      height: 14px;
-    }
-
-    .messages-table {
-      width: 100%;
-      border-collapse: collapse;
-      font-size: var(--text-caption);
-    }
-
-    .messages-table th {
-      text-align: left;
-      font-size: 12px;
-      font-weight: 500;
-      color: var(--color-smoke);
-      padding: 0 12px 14px 0;
-    }
-
-    .messages-table td {
-      padding: 16px 12px 16px 0;
-      border-top: 1px solid var(--color-stone-mist);
-      vertical-align: top;
-    }
-
-    .message-body { max-width: 360px; word-break: break-word; }
-
-    .filter-label {
-      font-size: var(--text-caption);
-      font-weight: 500;
-      color: var(--color-smoke);
-      margin-bottom: 16px;
-    }
-
-    .filter-label strong {
-      color: var(--color-midnight-ink);
-      font-weight: 600;
-    }
-
     .empty {
+      padding: 24px 16px;
       color: var(--color-smoke);
       font-size: var(--text-caption);
     }
 
-    .chat-portal {
-      display: grid;
-      grid-template-columns: 220px 1fr;
-      gap: 16px;
-      min-height: 480px;
-    }
-
-    @media (max-width: 900px) {
-      .chat-portal { grid-template-columns: 1fr; }
-    }
-
-    .chat-contacts {
-      border: 1px solid var(--color-stone-mist);
-      border-radius: var(--radius-nav);
-      background: var(--color-cream-paper);
-      overflow: hidden;
-      display: flex;
-      flex-direction: column;
-      max-height: 560px;
-    }
-
-    .chat-contacts-header {
-      padding: 12px 14px;
-      border-bottom: 1px solid var(--color-stone-mist);
-      font-size: 12px;
-      font-weight: 600;
-      color: var(--color-smoke);
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      gap: 8px;
-    }
-
-    .chat-contact-list {
-      list-style: none;
-      overflow-y: auto;
+    .chat-empty {
       flex: 1;
-    }
-
-    .chat-contact {
-      padding: 12px 14px;
-      border-bottom: 1px solid var(--color-stone-mist);
-      cursor: pointer;
-      transition: background 0.15s;
-    }
-
-    .chat-contact:hover { background: var(--color-white); }
-
-    .chat-contact.active {
-      background: var(--color-white);
-      box-shadow: inset 3px 0 0 var(--color-deep-forest-teal);
-    }
-
-    .chat-contact-name {
-      font-size: var(--text-caption);
-      font-weight: 600;
-      color: var(--color-midnight-ink);
-    }
-
-    .chat-contact-preview {
-      font-size: 12px;
-      color: var(--color-smoke);
-      margin-top: 4px;
-      white-space: nowrap;
-      overflow: hidden;
-      text-overflow: ellipsis;
-    }
-
-    .chat-thread {
-      border: 1px solid var(--color-stone-mist);
-      border-radius: var(--radius-nav);
       display: flex;
-      flex-direction: column;
-      min-height: 480px;
-      max-height: 560px;
-      background: var(--color-cream-paper);
-      overflow: hidden;
-    }
-
-    .chat-thread-header {
-      padding: 14px 16px;
-      border-bottom: 1px solid var(--color-stone-mist);
-      background: var(--color-white);
-    }
-
-    .chat-thread-header strong {
-      font-size: var(--text-body);
-      font-weight: 600;
-    }
-
-    .chat-thread-header .phone-meta {
-      margin-top: 4px;
+      align-items: center;
+      justify-content: center;
+      padding: 32px;
+      text-align: center;
+      color: var(--color-smoke);
+      font-size: var(--text-caption);
     }
 
     .chat-messages {
@@ -458,137 +312,143 @@
       padding: 16px;
       display: flex;
       flex-direction: column;
-      gap: 10px;
+      gap: 8px;
+      background: var(--color-cream-paper);
     }
 
-    .chat-bubble {
-      max-width: 78%;
-      padding: 10px 14px;
+    .bubble {
+      max-width: 80%;
+      padding: 10px 12px;
       border-radius: 14px;
-      font-size: var(--text-caption);
-      line-height: 1.4;
+      font-size: 14px;
+      line-height: 1.35;
       word-break: break-word;
     }
-
-    .chat-bubble.inbound {
+    .bubble.in {
       align-self: flex-start;
       background: var(--color-white);
-      border: 1px solid var(--color-stone-mist);
-      color: var(--color-midnight-ink);
+      border: var(--border);
     }
-
-    .chat-bubble.outbound {
+    .bubble.out {
       align-self: flex-end;
       background: var(--color-deep-forest-teal);
       color: var(--color-white);
     }
-
-    .chat-bubble-time {
+    .bubble time {
       display: block;
-      margin-top: 6px;
+      margin-top: 4px;
       font-size: 11px;
-      opacity: 0.7;
+      opacity: 0.65;
     }
 
-    .chat-compose {
+    .compose {
       display: flex;
       gap: 8px;
       padding: 12px;
-      border-top: 1px solid var(--color-stone-mist);
+      border-top: var(--border);
       background: var(--color-white);
     }
-
-    .chat-compose input,
-    .chat-compose textarea {
+    .compose textarea {
       flex: 1;
       font-family: var(--font-figtree);
-      font-size: var(--text-caption);
-      border: 1px solid var(--color-stone-mist);
-      border-radius: var(--radius-smallbadges);
+      font-size: 14px;
+      border: var(--border);
+      border-radius: 10px;
       padding: 10px 12px;
       resize: none;
       min-height: 42px;
-      max-height: 96px;
+      max-height: 100px;
     }
 
-    .chat-compose-new {
+    .new-chat {
       display: flex;
-      gap: 8px;
-      padding: 10px 12px;
-      border-bottom: 1px solid var(--color-stone-mist);
-      background: var(--color-white);
+      gap: 6px;
+      padding: 10px 16px;
+      border-bottom: var(--border);
     }
-
-    .chat-compose-new input {
+    .new-chat input {
       flex: 1;
       font-family: var(--font-figtree);
       font-size: var(--text-caption);
-      border: 1px solid var(--color-stone-mist);
-      border-radius: var(--radius-smallbadges);
-      padding: 8px 10px;
+      border: var(--border);
+      border-radius: 8px;
+      padding: 7px 10px;
     }
 
     .toast {
       position: fixed;
-      bottom: 24px;
-      right: 24px;
+      bottom: 20px;
+      right: 20px;
       background: var(--color-midnight-ink);
       color: var(--color-white);
-      padding: 14px 20px;
-      border-radius: var(--radius-buttons);
+      padding: 12px 16px;
+      border-radius: 10px;
       font-size: var(--text-caption);
       font-weight: 500;
       opacity: 0;
       transition: opacity 0.2s;
       pointer-events: none;
+      z-index: 20;
     }
-
     .toast.show { opacity: 1; }
   </style>
 </head>
 <body>
-  <div class="nav-wrap">
+  <div class="app">
     <header class="nav">
-      <div class="wordmark"><span class="muted">AWS</span><span class="accent">SMS</span></div>
+      <div class="wordmark"><span class="muted">AWS</span> SMS</div>
       <div class="nav-actions">
         <div class="nav-status" id="status">Loading…</div>
-        <button class="btn btn-ghost" type="button" id="refresh-btn">Refresh</button>
-        <button class="btn btn-ghost" type="button" id="logout-btn" hidden>Sign out</button>
+        <button class="btn" type="button" id="refresh-btn">Refresh</button>
+        <button class="btn" type="button" id="logout-btn" hidden>Sign out</button>
       </div>
     </header>
+
+    <div class="banner" id="banner" hidden>
+      <span id="banner-text"></span>
+    </div>
+
+    <div class="shell">
+      <aside class="pane pane-numbers">
+        <div class="pane-head">
+          <h2>Numbers</h2>
+        </div>
+        <div class="phone-sort">
+          <select id="phone-sort" aria-label="Sort phone numbers">
+            <option value="date-added" selected>Date added</option>
+            <option value="last-messaged">Last messaged</option>
+          </select>
+        </div>
+        <div class="pane-body">
+          <ul class="list" id="phone-list">
+            <li class="empty">Loading…</li>
+          </ul>
+        </div>
+      </aside>
+
+      <section class="pane pane-activity">
+        <div class="pane-head">
+          <h2 class="title" id="activity-title">All messages</h2>
+        </div>
+        <div class="new-chat" id="new-chat-bar" hidden>
+          <input id="new-chat-number" type="tel" placeholder="Start chat: +1…" aria-label="New chat number" />
+          <button class="btn btn-small" type="button" data-action="start-chat">Open</button>
+        </div>
+        <div class="pane-body" id="activity-wrap">
+          <p class="empty">Loading…</p>
+        </div>
+      </section>
+
+      <section class="pane pane-chat" id="chat-pane" data-empty="true">
+        <div class="pane-head" id="chat-head">
+          <h2 class="title">Conversation</h2>
+        </div>
+        <div class="pane-body" id="chat-wrap" style="display:flex;flex-direction:column">
+          <div class="chat-empty">Select a message to open the chat.</div>
+        </div>
+      </section>
+    </div>
   </div>
-
-  <div class="banner" id="banner" hidden>
-    <span id="banner-text"></span>
-  </div>
-
-  <section class="hero">
-    <h1><span class="muted">SMS</span> <span class="accent">inbox</span></h1>
-    <p>View and reply to SMS on your pool numbers. Click a number to open its chat portal.</p>
-  </section>
-
-  <main class="layout">
-    <aside class="card">
-      <div class="badge">Numbers</div>
-      <h2>Phone pool</h2>
-      <div class="phone-sort">
-        <label for="phone-sort">Sort by</label>
-        <select id="phone-sort">
-          <option value="date-added" selected>Date added</option>
-          <option value="last-messaged">Last messaged</option>
-        </select>
-      </div>
-      <ul class="phone-list" id="phone-list">
-        <li class="empty">Loading…</li>
-      </ul>
-    </aside>
-
-    <section class="card">
-      <div class="badge" id="panel-badge">Inbox</div>
-      <h2 id="panel-title">Messages</h2>
-      <div id="messages-wrap"><p class="empty">Loading…</p></div>
-    </section>
-  </main>
 
   <div class="toast" id="toast"></div>
 
@@ -596,12 +456,17 @@
     const statusEl = document.getElementById('status');
     const phoneListEl = document.getElementById('phone-list');
     const phoneSortEl = document.getElementById('phone-sort');
-    const messagesWrap = document.getElementById('messages-wrap');
+    const activityWrap = document.getElementById('activity-wrap');
+    const activityTitle = document.getElementById('activity-title');
+    const newChatBar = document.getElementById('new-chat-bar');
+    const chatPane = document.getElementById('chat-pane');
+    const chatHead = document.getElementById('chat-head');
+    const chatWrap = document.getElementById('chat-wrap');
     const toast = document.getElementById('toast');
+
     let phoneNumbers = [];
     let nicknameLookup = new Map();
-    let regionLookup = new Map();
-    let selectedFilter = null;
+    let selectedPool = null;
     let selectedRemote = null;
     let allMessages = [];
     let phoneSort = phoneSortEl?.value || 'date-added';
@@ -609,11 +474,9 @@
     function messagePool(m) {
       return m.poolNumber || (m.direction === 'outbound' ? m.fromNumber : m.toNumber);
     }
-
     function messageRemote(m) {
       return m.remoteNumber || (m.direction === 'outbound' ? m.toNumber : m.fromNumber);
     }
-
     function messageDirection(m) {
       return m.direction === 'outbound' ? 'outbound' : 'inbound';
     }
@@ -640,7 +503,7 @@
     const COPY_ICON = '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>';
 
     function phoneCopyHtml(phoneNumber) {
-      return `<span class="phone-copy"><span>${escapeHtml(phoneNumber)}</span><button class="copy-btn" type="button" data-action="copy-phone" data-phone="${escapeHtml(phoneNumber)}" title="Copy phone number" aria-label="Copy phone number">${COPY_ICON}</button></span>`;
+      return `<span class="phone-copy"><span>${escapeHtml(phoneNumber)}</span><button class="copy-btn" type="button" data-action="copy-phone" data-phone="${escapeHtml(phoneNumber)}" title="Copy" aria-label="Copy phone number">${COPY_ICON}</button></span>`;
     }
 
     async function copyPhoneNumber(phoneNumber) {
@@ -653,32 +516,30 @@
     }
 
     function fmtDate(iso) {
-      try { return new Date(iso).toLocaleString(); } catch { return iso; }
+      try {
+        const d = new Date(iso);
+        const now = new Date();
+        const sameDay = d.toDateString() === now.toDateString();
+        if (sameDay) return d.toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' });
+        return d.toLocaleString([], { month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit' });
+      } catch {
+        return iso;
+      }
     }
 
     function nicknameFor(number) {
       return nicknameLookup.get(number) ?? number;
     }
 
-    function regionFor(number) {
-      return regionLookup.get(number) ?? '';
-    }
-
-    function filterLabel() {
-      if (!selectedFilter) return 'Showing <strong>all messages</strong>';
-      const nickname = nicknameFor(selectedFilter);
-      return `SMS portal for <strong>${escapeHtml(nickname)}</strong>`;
-    }
-
     function filteredMessages(messages) {
-      if (!selectedFilter) return messages;
-      return messages.filter((m) => messagePool(m) === selectedFilter);
+      if (!selectedPool) return messages;
+      return messages.filter((m) => messagePool(m) === selectedPool);
     }
 
     function updateStatus(messages) {
       const visible = filteredMessages(messages);
-      if (selectedFilter) {
-        statusEl.textContent = `${visible.length} of ${messages.length} message${messages.length === 1 ? '' : 's'}`;
+      if (selectedPool) {
+        statusEl.textContent = `${visible.length} of ${messages.length}`;
       } else {
         statusEl.textContent = `${messages.length} message${messages.length === 1 ? '' : 's'}`;
       }
@@ -689,32 +550,9 @@
       for (const m of messages) {
         const pool = messagePool(m);
         const current = map.get(pool);
-        if (!current || m.receivedAt > current) {
-          map.set(pool, m.receivedAt);
-        }
+        if (!current || m.receivedAt > current) map.set(pool, m.receivedAt);
       }
       return map;
-    }
-
-    function chatsForPool(poolNumber, messages) {
-      const byRemote = new Map();
-      for (const m of messages) {
-        if (messagePool(m) !== poolNumber) continue;
-        const remote = messageRemote(m);
-        if (!remote) continue;
-        const existing = byRemote.get(remote);
-        if (!existing || m.receivedAt > existing.lastAt) {
-          byRemote.set(remote, {
-            remoteNumber: remote,
-            lastAt: m.receivedAt,
-            preview: m.messageBody,
-            count: (existing?.count ?? 0) + 1,
-          });
-        } else {
-          existing.count += 1;
-        }
-      }
-      return [...byRemote.values()].sort((a, b) => b.lastAt.localeCompare(a.lastAt));
     }
 
     function threadMessages(poolNumber, remoteNumber, messages) {
@@ -745,37 +583,121 @@
     function renderPhones(numbers) {
       phoneNumbers = numbers;
       nicknameLookup = new Map(numbers.map((p) => [p.phoneNumber, p.nickname]));
-      regionLookup = new Map(numbers.map((p) => [p.phoneNumber, p.region]));
       const lastMessaged = lastMessagedByPhone(allMessages);
       const sorted = sortPhoneNumbers(numbers, phoneSort, lastMessaged);
-      const allActive = !selectedFilter ? ' filter-active' : '';
-      const allItem = `
-        <li class="phone-item filter-all${allActive}" data-action="filter-all">
-          <div class="phone-nickname">All messages</div>
-          <div class="phone-meta">Every pool number</div>
+
+      const allActive = !selectedPool ? ' active' : '';
+      let html = `
+        <li>
+          <button type="button" class="row${allActive}" data-action="filter-all">
+            <div class="row-title">All messages</div>
+            <div class="row-meta">Entire pool</div>
+          </button>
         </li>
       `;
+
       if (!sorted.length) {
-        phoneListEl.innerHTML = allItem + '<li class="empty">No numbers configured.</li>';
+        phoneListEl.innerHTML = html + '<li class="empty">No numbers configured.</li>';
         return;
       }
-      phoneListEl.innerHTML = allItem + sorted.map((p) => {
+
+      html += sorted.map((p) => {
         const last = lastMessaged.get(p.phoneNumber);
-        const addedLabel = p.createdAt ? fmtDate(p.createdAt) : 'Unknown';
-        const lastLabel = last ? fmtDate(last) : 'Never';
         return `
-        <li class="phone-item${selectedFilter === p.phoneNumber ? ' filter-active' : ''}" data-phone="${escapeHtml(p.phoneNumber)}">
-          <div class="phone-nickname" data-role="label">${escapeHtml(p.nickname)}</div>
-          <div class="phone-meta">${phoneCopyHtml(p.phoneNumber)}</div>
-          <div class="phone-meta">${escapeHtml(p.region)}</div>
-          <div class="phone-meta">Added ${escapeHtml(addedLabel)}</div>
-          <div class="phone-meta">Last messaged ${escapeHtml(lastLabel)}</div>
-          <div class="phone-actions">
-            <button class="btn btn-ghost btn-small" type="button" data-action="edit">Rename</button>
-          </div>
-        </li>
-      `;
+          <li>
+            <div class="row${selectedPool === p.phoneNumber ? ' active' : ''}" data-phone="${escapeHtml(p.phoneNumber)}" role="button" tabindex="0">
+              <div class="row-title" data-role="label">${escapeHtml(p.nickname)}</div>
+              <div class="row-meta">${phoneCopyHtml(p.phoneNumber)}</div>
+              <div class="row-preview">${last ? `Last ${escapeHtml(fmtDate(last))}` : 'No messages yet'}</div>
+              <div class="phone-row-actions">
+                <button class="btn btn-small btn-ghost-soft" type="button" data-action="edit">Rename</button>
+              </div>
+            </div>
+          </li>
+        `;
       }).join('');
+
+      phoneListEl.innerHTML = html;
+    }
+
+    function renderActivity() {
+      const visible = filteredMessages(allMessages);
+      activityTitle.textContent = selectedPool
+        ? nicknameFor(selectedPool)
+        : 'All messages';
+      newChatBar.hidden = !selectedPool;
+
+      if (!visible.length) {
+        activityWrap.innerHTML = selectedPool
+          ? '<p class="empty">No messages to this number yet.</p>'
+          : '<p class="empty">No messages yet.</p>';
+        return;
+      }
+
+      activityWrap.innerHTML = `<ul class="list">${visible.map((m) => {
+        const remote = messageRemote(m);
+        const pool = messagePool(m);
+        const dir = messageDirection(m);
+        const active = selectedPool === pool && selectedRemote === remote ? ' active' : '';
+        return `
+          <li>
+            <button type="button" class="row activity-item${active}" data-action="open-chat" data-pool="${escapeHtml(pool)}" data-remote="${escapeHtml(remote)}">
+              <div class="row-meta">
+                <span class="from">${phoneCopyHtml(remote)}</span>
+                <span class="dir-pill${dir === 'outbound' ? ' out' : ''}">${dir === 'outbound' ? 'Sent' : 'Received'}</span>
+                <span>${escapeHtml(fmtDate(m.receivedAt))}</span>
+              </div>
+              ${!selectedPool ? `<div class="row-preview">to ${escapeHtml(nicknameFor(pool))}</div>` : ''}
+              <div class="body">${escapeHtml(m.messageBody)}</div>
+            </button>
+          </li>
+        `;
+      }).join('')}</ul>`;
+    }
+
+    function renderChat() {
+      if (!selectedPool || !selectedRemote) {
+        chatPane.dataset.empty = 'true';
+        chatHead.innerHTML = '<h2 class="title">Conversation</h2>';
+        chatWrap.innerHTML = '<div class="chat-empty">Select a message to open the chat.</div>';
+        return;
+      }
+
+      chatPane.dataset.empty = 'false';
+      const thread = threadMessages(selectedPool, selectedRemote, allMessages);
+      chatHead.innerHTML = `
+        <div>
+          <h2 class="title">${phoneCopyHtml(selectedRemote)}</h2>
+          <div class="row-meta" style="margin-top:2px">via ${escapeHtml(nicknameFor(selectedPool))}</div>
+        </div>
+        <button class="btn btn-small btn-ghost-soft" type="button" data-action="close-chat">Close</button>
+      `;
+
+      const bubbles = thread.length
+        ? thread.map((m) => `
+            <div class="bubble ${messageDirection(m) === 'outbound' ? 'out' : 'in'}">
+              ${escapeHtml(m.messageBody)}
+              <time>${escapeHtml(fmtDate(m.receivedAt))}</time>
+            </div>
+          `).join('')
+        : '<div class="chat-empty" style="padding:16px">No messages in this thread yet.</div>';
+
+      chatWrap.innerHTML = `
+        <div class="chat-messages" id="chat-messages">${bubbles}</div>
+        <form class="compose" id="chat-compose-form">
+          <textarea id="chat-compose-input" rows="1" placeholder="Reply…"></textarea>
+          <button class="btn btn-primary" type="submit">Send</button>
+        </form>
+      `;
+
+      const el = document.getElementById('chat-messages');
+      if (el) el.scrollTop = el.scrollHeight;
+    }
+
+    function renderAll() {
+      renderPhones(phoneNumbers);
+      renderActivity();
+      renderChat();
     }
 
     async function saveNickname(phoneNumber, nickname) {
@@ -793,188 +715,12 @@
         p.phoneNumber === updated.phoneNumber ? updated : p,
       );
       nicknameLookup.set(updated.phoneNumber, updated.nickname);
-      if (updated.region) regionLookup.set(updated.phoneNumber, updated.region);
-      renderPhones(phoneNumbers);
-      renderMessages(allMessages);
+      renderAll();
       showToast(`Renamed to “${updated.nickname}”`);
     }
 
-    phoneListEl.addEventListener('click', (event) => {
-      if (event.target.closest('[data-action="edit"], [data-action="save"], [data-action="cancel"], [data-role="input"], [data-action="copy-phone"]')) {
-        return;
-      }
-      if (event.target.closest('[data-action="filter-all"]')) {
-        selectedFilter = null;
-        selectedRemote = null;
-        renderPhones(phoneNumbers);
-        renderMessages(allMessages);
-        updateStatus(allMessages);
-        return;
-      }
-      const item = event.target.closest('.phone-item[data-phone]');
-      if (!item) return;
-      selectedFilter = item.dataset.phone;
-      selectedRemote = null;
-      renderPhones(phoneNumbers);
-      renderMessages(allMessages);
-      updateStatus(allMessages);
-    });
-
-    phoneListEl.addEventListener('click', async (event) => {
-      const button = event.target.closest('[data-action="edit"]');
-      if (!button) return;
-      const item = button.closest('.phone-item');
-      const phoneNumber = item?.dataset.phone;
-      const current = phoneNumbers.find((p) => p.phoneNumber === phoneNumber);
-      if (!current) return;
-
-      item.querySelector('[data-role="label"]').outerHTML = `
-        <input class="phone-nickname-input" data-role="input" value="${escapeHtml(current.nickname)}" maxlength="64" />
-      `;
-      button.outerHTML = `
-        <button class="btn btn-primary btn-small" type="button" data-action="save">Save</button>
-        <button class="btn btn-ghost btn-small" type="button" data-action="cancel">Cancel</button>
-      `;
-      item.querySelector('[data-role="input"]')?.focus();
-    });
-
-    phoneListEl.addEventListener('click', async (event) => {
-      const button = event.target.closest('[data-action="save"], [data-action="cancel"]');
-      if (!button) return;
-      const item = button.closest('.phone-item');
-      const phoneNumber = item?.dataset.phone;
-      if (button.dataset.action === 'cancel') {
-        renderPhones(phoneNumbers);
-        return;
-      }
-      const input = item.querySelector('[data-role="input"]');
-      const nickname = input?.value.trim();
-      if (!nickname) {
-        showToast('Nickname cannot be empty');
-        return;
-      }
-      try {
-        button.disabled = true;
-        await saveNickname(phoneNumber, nickname);
-      } catch (err) {
-        showToast(err.message || 'Failed to save nickname');
-        renderPhones(phoneNumbers);
-      }
-    });
-
-    function renderChatPortal(messages) {
-      const chats = chatsForPool(selectedFilter, messages);
-      if (selectedRemote && !chats.some((c) => c.remoteNumber === selectedRemote)) {
-        // Keep selected remote even if no messages yet (new draft chat)
-      } else if (!selectedRemote && chats.length) {
-        selectedRemote = chats[0].remoteNumber;
-      }
-
-      const contactItems = chats.map((c) => `
-        <li class="chat-contact${selectedRemote === c.remoteNumber ? ' active' : ''}" data-action="select-chat" data-remote="${escapeHtml(c.remoteNumber)}">
-          <div class="chat-contact-name">${phoneCopyHtml(c.remoteNumber)}</div>
-          <div class="chat-contact-preview">${escapeHtml(c.preview || '')}</div>
-          <div class="chat-contact-preview">${escapeHtml(fmtDate(c.lastAt))} · ${c.count} msg${c.count === 1 ? '' : 's'}</div>
-        </li>
-      `).join('');
-
-      const thread = selectedRemote
-        ? threadMessages(selectedFilter, selectedRemote, messages)
-        : [];
-
-      const threadBody = !selectedRemote
-        ? '<p class="empty">Select a chat or start a new one.</p>'
-        : thread.length
-          ? thread.map((m) => `
-              <div class="chat-bubble ${messageDirection(m)}">
-                ${escapeHtml(m.messageBody)}
-                <span class="chat-bubble-time">${escapeHtml(fmtDate(m.receivedAt))}</span>
-              </div>
-            `).join('')
-          : '<p class="empty">No messages yet — send the first reply below.</p>';
-
-      const threadHeader = selectedRemote
-        ? `<strong>${phoneCopyHtml(selectedRemote)}</strong><div class="phone-meta">via ${escapeHtml(nicknameFor(selectedFilter))}</div>`
-        : `<strong>New chat</strong><div class="phone-meta">Pick a contact or enter a number</div>`;
-
-      return `
-        <p class="filter-label">${filterLabel()}</p>
-        <div class="chat-portal">
-          <div class="chat-contacts">
-            <div class="chat-contacts-header">
-              <span>Chats</span>
-              <span>${chats.length}</span>
-            </div>
-            <div class="chat-compose-new">
-              <input id="new-chat-number" type="tel" placeholder="+1…" aria-label="New chat phone number" />
-              <button class="btn btn-ghost btn-small" type="button" data-action="start-chat">Open</button>
-            </div>
-            <ul class="chat-contact-list">
-              ${contactItems || '<li class="empty" style="padding:14px">No chats yet.</li>'}
-            </ul>
-          </div>
-          <div class="chat-thread">
-            <div class="chat-thread-header">${threadHeader}</div>
-            <div class="chat-messages" id="chat-messages">${threadBody}</div>
-            <form class="chat-compose" id="chat-compose-form">
-              <textarea id="chat-compose-input" rows="1" placeholder="${selectedRemote ? 'Type a reply…' : 'Select a chat first'}" ${selectedRemote ? '' : 'disabled'}></textarea>
-              <button class="btn btn-primary btn-small" type="submit" ${selectedRemote ? '' : 'disabled'}>Send</button>
-            </form>
-          </div>
-        </div>
-      `;
-    }
-
-    function renderMessages(messages) {
-      allMessages = messages;
-      renderPhones(phoneNumbers);
-      const panelBadge = document.getElementById('panel-badge');
-      const panelTitle = document.getElementById('panel-title');
-
-      if (selectedFilter) {
-        panelBadge.textContent = 'Portal';
-        panelTitle.textContent = nicknameFor(selectedFilter);
-        messagesWrap.innerHTML = renderChatPortal(messages);
-        const threadEl = document.getElementById('chat-messages');
-        if (threadEl) threadEl.scrollTop = threadEl.scrollHeight;
-        return;
-      }
-
-      panelBadge.textContent = 'Inbox';
-      panelTitle.textContent = 'Messages';
-      const visible = filteredMessages(messages);
-      const filterHtml = `<p class="filter-label">${filterLabel()}</p>`;
-
-      if (!messages.length) {
-        messagesWrap.innerHTML = filterHtml + '<p class="empty">No messages yet. Text one of your pool numbers to create an entry.</p>';
-        return;
-      }
-      messagesWrap.innerHTML = filterHtml + `
-        <table class="messages-table">
-          <thead>
-            <tr>
-              <th>Received</th>
-              <th>From</th>
-              <th>To</th>
-              <th>Message</th>
-            </tr>
-          </thead>
-          <tbody>
-            ${visible.map((m) => `
-              <tr>
-                <td>${fmtDate(m.receivedAt)}</td>
-                <td>${phoneCopyHtml(m.fromNumber)}</td>
-                <td>${escapeHtml(nicknameFor(messagePool(m)))}<div class="phone-meta">${phoneCopyHtml(messagePool(m))}</div><div class="phone-meta">${escapeHtml(regionFor(messagePool(m)))}</div></td>
-                <td class="message-body">${escapeHtml(m.messageBody)}</td>
-              </tr>
-            `).join('')}
-          </tbody>
-        </table>
-      `;
-    }
-
     async function sendChatMessage(messageBody) {
-      if (!selectedFilter || !selectedRemote) {
+      if (!selectedPool || !selectedRemote) {
         showToast('Select a chat first');
         return;
       }
@@ -982,7 +728,7 @@
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          fromNumber: selectedFilter,
+          fromNumber: selectedPool,
           toNumber: selectedRemote,
           messageBody,
         }),
@@ -993,16 +739,15 @@
       }
       const { message } = await res.json();
       allMessages = [message, ...allMessages];
-      renderMessages(allMessages);
       updateStatus(allMessages);
+      renderAll();
       showToast('Message sent');
     }
 
     function showBanner(text) {
       const banner = document.getElementById('banner');
-      const inner = document.getElementById('banner-text');
+      document.getElementById('banner-text').textContent = text;
       banner.hidden = false;
-      inner.textContent = text;
     }
 
     async function refresh() {
@@ -1020,7 +765,6 @@
           apiFetch('/api/messages'),
           apiFetch('/api/phone-numbers'),
         ]);
-
         if (!messagesRes.ok || !phonesRes.ok) {
           throw new Error('Could not load data from the read API');
         }
@@ -1028,14 +772,15 @@
         const { messages } = await messagesRes.json();
         const { phoneNumbers: phones } = await phonesRes.json();
 
-        if (selectedFilter && !phones.some((p) => p.phoneNumber === selectedFilter)) {
-          selectedFilter = null;
+        if (selectedPool && !phones.some((p) => p.phoneNumber === selectedPool)) {
+          selectedPool = null;
           selectedRemote = null;
         }
 
+        allMessages = messages;
+        phoneNumbers = phones;
         updateStatus(messages);
-        renderPhones(phones);
-        renderMessages(messages);
+        renderAll();
       } catch (err) {
         statusEl.textContent = 'Error';
         showBanner(err.message || 'Failed to load');
@@ -1043,27 +788,89 @@
       }
     }
 
-    messagesWrap.addEventListener('click', (event) => {
-      const contact = event.target.closest('[data-action="select-chat"]');
-      if (contact) {
-        selectedRemote = contact.dataset.remote;
-        renderMessages(allMessages);
+    phoneListEl.addEventListener('click', async (event) => {
+      if (event.target.closest('[data-action="copy-phone"]')) return;
+
+      if (event.target.closest('[data-action="filter-all"]')) {
+        selectedPool = null;
+        selectedRemote = null;
+        updateStatus(allMessages);
+        renderAll();
         return;
       }
-      if (event.target.closest('[data-action="start-chat"]')) {
-        const input = document.getElementById('new-chat-number');
-        const raw = input?.value.trim() || '';
-        const number = raw.replace(/[^\d+]/g, '');
-        if (!number.startsWith('+') || number.length < 10) {
-          showToast('Enter a full number like +1…');
+
+      const editBtn = event.target.closest('[data-action="edit"]');
+      if (editBtn) {
+        const item = editBtn.closest('[data-phone]');
+        const phoneNumber = item?.dataset.phone;
+        const current = phoneNumbers.find((p) => p.phoneNumber === phoneNumber);
+        if (!current || !item) return;
+        item.querySelector('[data-role="label"]').outerHTML = `
+          <input class="phone-nickname-input" data-role="input" value="${escapeHtml(current.nickname)}" maxlength="64" />
+        `;
+        editBtn.outerHTML = `
+          <button class="btn btn-primary btn-small" type="button" data-action="save">Save</button>
+          <button class="btn btn-small" type="button" data-action="cancel">Cancel</button>
+        `;
+        item.querySelector('[data-role="input"]')?.focus();
+        return;
+      }
+
+      const saveOrCancel = event.target.closest('[data-action="save"], [data-action="cancel"]');
+      if (saveOrCancel) {
+        const item = saveOrCancel.closest('[data-phone]');
+        const phoneNumber = item?.dataset.phone;
+        if (saveOrCancel.dataset.action === 'cancel') {
+          renderPhones(phoneNumbers);
           return;
         }
-        selectedRemote = number;
-        renderMessages(allMessages);
+        const input = item.querySelector('[data-role="input"]');
+        const nickname = input?.value.trim();
+        if (!nickname) {
+          showToast('Nickname cannot be empty');
+          return;
+        }
+        try {
+          saveOrCancel.disabled = true;
+          await saveNickname(phoneNumber, nickname);
+        } catch (err) {
+          showToast(err.message || 'Failed to save nickname');
+          renderPhones(phoneNumbers);
+        }
+        return;
       }
+
+      const item = event.target.closest('[data-phone]');
+      if (!item) return;
+      selectedPool = item.dataset.phone;
+      selectedRemote = null;
+      updateStatus(allMessages);
+      renderAll();
     });
 
-    messagesWrap.addEventListener('submit', async (event) => {
+    activityWrap.addEventListener('click', (event) => {
+      if (event.target.closest('[data-action="copy-phone"]')) return;
+      const btn = event.target.closest('[data-action="open-chat"]');
+      if (!btn) return;
+      selectedPool = btn.dataset.pool;
+      selectedRemote = btn.dataset.remote;
+      updateStatus(allMessages);
+      renderAll();
+    });
+
+    newChatBar.addEventListener('click', (event) => {
+      if (!event.target.closest('[data-action="start-chat"]')) return;
+      const raw = document.getElementById('new-chat-number')?.value.trim() || '';
+      const number = raw.replace(/[^\d+]/g, '');
+      if (!number.startsWith('+') || number.length < 10) {
+        showToast('Enter a full number like +1…');
+        return;
+      }
+      selectedRemote = number;
+      renderAll();
+    });
+
+    chatWrap.addEventListener('submit', async (event) => {
       const form = event.target.closest('#chat-compose-form');
       if (!form) return;
       event.preventDefault();
@@ -1079,6 +886,13 @@
         showToast(err.message || 'Failed to send');
       } finally {
         if (btn) btn.disabled = false;
+      }
+    });
+
+    chatHead.addEventListener('click', (event) => {
+      if (event.target.closest('[data-action="close-chat"]')) {
+        selectedRemote = null;
+        renderAll();
       }
     });
 
