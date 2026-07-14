@@ -1,11 +1,13 @@
 import { DynamoDBClient } from '@aws-sdk/client-dynamodb';
 import { DynamoDBDocumentClient, ScanCommand } from '@aws-sdk/lib-dynamodb';
 import type { APIGatewayProxyHandlerV2 } from 'aws-lambda';
+import { normalizeStoredMessage } from './conversations.js';
 import {
   loadPhoneNumbers,
   parseConfiguredPhoneNumbers,
   updateNickname,
 } from './phone-numbers.js';
+import { sendSmsMessage } from './send-sms.js';
 
 const region = process.env.AWS_REGION ?? 'us-east-2';
 const messagesTableName = process.env.DYNAMODB_TABLE_NAME ?? 'InboundSmsMessages';
@@ -21,7 +23,7 @@ function corsHeaders() {
     'content-type': 'application/json',
     'access-control-allow-origin': '*',
     'access-control-allow-headers': 'content-type,x-api-key',
-    'access-control-allow-methods': 'GET,PUT,OPTIONS',
+    'access-control-allow-methods': 'GET,PUT,POST,OPTIONS',
   };
 }
 
@@ -103,19 +105,49 @@ export const handler: APIGatewayProxyHandlerV2 = async (event) => {
       }
     }
 
+    if (path.endsWith('/messages/send') && method === 'POST') {
+      const body = parseBody(event) as {
+        fromNumber?: string;
+        toNumber?: string;
+        messageBody?: string;
+      } | null;
+
+      const fromNumber = body?.fromNumber?.trim();
+      const toNumber = body?.toNumber?.trim();
+      const messageBody = body?.messageBody?.trim();
+
+      if (!fromNumber || !toNumber || !messageBody) {
+        return json(400, {
+          error: 'fromNumber, toNumber, and messageBody are required',
+        });
+      }
+
+      if (!configuredPhoneNumbers.includes(fromNumber)) {
+        return json(400, { error: 'fromNumber must be a pool phone number' });
+      }
+
+      try {
+        const message = await sendSmsMessage(docClient, messagesTableName, {
+          fromNumber,
+          toNumber,
+          messageBody,
+        });
+        return json(200, { message });
+      } catch (error) {
+        console.error('Send SMS failed:', error);
+        return json(502, {
+          error: error instanceof Error ? error.message : 'Failed to send SMS',
+        });
+      }
+    }
+
     if (path.endsWith('/messages') && method === 'GET') {
       const result = await docClient.send(
-        new ScanCommand({ TableName: messagesTableName, Limit: 200 }),
+        new ScanCommand({ TableName: messagesTableName, Limit: 500 }),
       );
 
-      const messages = ((result.Items ?? []) as Record<string, string>[])
-        .map((item) => ({
-          messageId: item.messageId,
-          fromNumber: item.fromNumber,
-          toNumber: item.toNumber,
-          messageBody: item.messageBody,
-          receivedAt: item.receivedAt,
-        }))
+      const messages = ((result.Items ?? []) as Record<string, unknown>[])
+        .map((item) => normalizeStoredMessage(item))
         .sort(
           (a, b) => new Date(b.receivedAt).getTime() - new Date(a.receivedAt).getTime(),
         );

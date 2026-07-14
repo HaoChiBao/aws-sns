@@ -18,6 +18,10 @@ export interface InboundSmsMessage {
   messageBody: string;
   receivedAt: string;
   rawPayload: unknown;
+  direction?: 'inbound' | 'outbound';
+  conversationKey?: string;
+  poolNumber?: string;
+  remoteNumber?: string;
 }
 
 export interface HandlerResponse {

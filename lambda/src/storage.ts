@@ -1,5 +1,6 @@
 import { DynamoDBClient } from '@aws-sdk/client-dynamodb';
 import { DynamoDBDocumentClient, PutCommand } from '@aws-sdk/lib-dynamodb';
+import { conversationKey } from './conversations.js';
 import type { InboundSmsMessage } from './types.js';
 
 let documentClient: DynamoDBDocumentClient | undefined;
@@ -29,6 +30,12 @@ export async function saveInboundSmsMessage(message: InboundSmsMessage): Promise
     return;
   }
 
+  const poolNumber = message.poolNumber ?? message.toNumber;
+  const remoteNumber = message.remoteNumber ?? message.fromNumber;
+  const direction = message.direction ?? 'inbound';
+  const key =
+    message.conversationKey ?? conversationKey(poolNumber, remoteNumber);
+
   await getDocumentClient().send(
     new PutCommand({
       TableName: getTableName(),
@@ -39,6 +46,10 @@ export async function saveInboundSmsMessage(message: InboundSmsMessage): Promise
         messageBody: message.messageBody,
         receivedAt: message.receivedAt,
         rawPayload: message.rawPayload,
+        direction,
+        conversationKey: key,
+        poolNumber,
+        remoteNumber,
       },
     }),
   );

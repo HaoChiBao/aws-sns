@@ -4,6 +4,10 @@ export interface InboundMessage {
   toNumber: string;
   messageBody: string;
   receivedAt: string;
+  direction?: 'inbound' | 'outbound';
+  conversationKey?: string;
+  poolNumber?: string;
+  remoteNumber?: string;
 }
 
 export interface PhoneNumberEntry {
@@ -66,4 +70,25 @@ export async function updatePhoneNumberNickname(
   }
   const data = (await res.json()) as { phoneNumber: PhoneNumberEntry };
   return data.phoneNumber;
+}
+
+export async function sendMessage(input: {
+  fromNumber: string;
+  toNumber: string;
+  messageBody: string;
+}): Promise<InboundMessage> {
+  const res = await fetch(`${readerBaseUrl()}/messages/send`, {
+    method: 'POST',
+    headers: {
+      ...readerHeaders(),
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify(input),
+  });
+  if (!res.ok) {
+    const body = (await res.json().catch(() => ({}))) as { error?: string };
+    throw new Error(body.error ?? `Failed to send message (${res.status})`);
+  }
+  const data = (await res.json()) as { message: InboundMessage };
+  return data.message;
 }

@@ -102,12 +102,15 @@ export class InboundSmsStack extends cdk.Stack {
       },
     });
 
-    table.grantReadData(readerApi);
+    table.grantReadWriteData(readerApi);
     nicknamesTable.grantReadWriteData(readerApi);
 
     readerApi.addToRolePolicy(
       new iam.PolicyStatement({
-        actions: ['sms-voice:DescribePhoneNumbers'],
+        actions: [
+          'sms-voice:DescribePhoneNumbers',
+          'sms-voice:SendTextMessage',
+        ],
         resources: ['*'],
       }),
     );
@@ -119,6 +122,7 @@ export class InboundSmsStack extends cdk.Stack {
         allowMethods: [
           apigwv2.CorsHttpMethod.GET,
           apigwv2.CorsHttpMethod.PUT,
+          apigwv2.CorsHttpMethod.POST,
           apigwv2.CorsHttpMethod.OPTIONS,
         ],
         allowOrigins: ['*'],
@@ -133,6 +137,12 @@ export class InboundSmsStack extends cdk.Stack {
     httpApi.addRoutes({
       path: '/messages',
       methods: [apigwv2.HttpMethod.GET],
+      integration: readerIntegration,
+    });
+
+    httpApi.addRoutes({
+      path: '/messages/send',
+      methods: [apigwv2.HttpMethod.POST],
       integration: readerIntegration,
     });
 

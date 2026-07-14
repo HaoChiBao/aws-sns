@@ -12,7 +12,7 @@ import {
   sessionCookieHeader,
   verifyDashboardPassword,
 } from './auth.js';
-import { listMessages, listPhoneNumbers, updatePhoneNumberNickname } from './data.js';
+import { listMessages, listPhoneNumbers, sendMessage, updatePhoneNumberNickname } from './data.js';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 
@@ -92,6 +92,34 @@ app.get('/api/messages', async (_req, res) => {
     console.error('GET /api/messages:', error);
     res.status(503).json({
       error: error instanceof Error ? error.message : 'Failed to load messages',
+      code: 'READER_API_ERROR',
+    });
+  }
+});
+
+app.post('/api/messages/send', async (req, res) => {
+  try {
+    const { fromNumber, toNumber, messageBody } = req.body as {
+      fromNumber?: string;
+      toNumber?: string;
+      messageBody?: string;
+    };
+    if (!fromNumber?.trim() || !toNumber?.trim() || !messageBody?.trim()) {
+      res.status(400).json({
+        error: 'fromNumber, toNumber, and messageBody are required',
+      });
+      return;
+    }
+    const message = await sendMessage({
+      fromNumber: fromNumber.trim(),
+      toNumber: toNumber.trim(),
+      messageBody: messageBody.trim(),
+    });
+    res.json({ message });
+  } catch (error) {
+    console.error('POST /api/messages/send:', error);
+    res.status(502).json({
+      error: error instanceof Error ? error.message : 'Failed to send message',
       code: 'READER_API_ERROR',
     });
   }

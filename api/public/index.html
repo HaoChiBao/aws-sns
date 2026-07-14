@@ -358,6 +358,176 @@
       font-size: var(--text-caption);
     }
 
+    .chat-portal {
+      display: grid;
+      grid-template-columns: 220px 1fr;
+      gap: 16px;
+      min-height: 480px;
+    }
+
+    @media (max-width: 900px) {
+      .chat-portal { grid-template-columns: 1fr; }
+    }
+
+    .chat-contacts {
+      border: 1px solid var(--color-stone-mist);
+      border-radius: var(--radius-nav);
+      background: var(--color-cream-paper);
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+      max-height: 560px;
+    }
+
+    .chat-contacts-header {
+      padding: 12px 14px;
+      border-bottom: 1px solid var(--color-stone-mist);
+      font-size: 12px;
+      font-weight: 600;
+      color: var(--color-smoke);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .chat-contact-list {
+      list-style: none;
+      overflow-y: auto;
+      flex: 1;
+    }
+
+    .chat-contact {
+      padding: 12px 14px;
+      border-bottom: 1px solid var(--color-stone-mist);
+      cursor: pointer;
+      transition: background 0.15s;
+    }
+
+    .chat-contact:hover { background: var(--color-white); }
+
+    .chat-contact.active {
+      background: var(--color-white);
+      box-shadow: inset 3px 0 0 var(--color-deep-forest-teal);
+    }
+
+    .chat-contact-name {
+      font-size: var(--text-caption);
+      font-weight: 600;
+      color: var(--color-midnight-ink);
+    }
+
+    .chat-contact-preview {
+      font-size: 12px;
+      color: var(--color-smoke);
+      margin-top: 4px;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .chat-thread {
+      border: 1px solid var(--color-stone-mist);
+      border-radius: var(--radius-nav);
+      display: flex;
+      flex-direction: column;
+      min-height: 480px;
+      max-height: 560px;
+      background: var(--color-cream-paper);
+      overflow: hidden;
+    }
+
+    .chat-thread-header {
+      padding: 14px 16px;
+      border-bottom: 1px solid var(--color-stone-mist);
+      background: var(--color-white);
+    }
+
+    .chat-thread-header strong {
+      font-size: var(--text-body);
+      font-weight: 600;
+    }
+
+    .chat-thread-header .phone-meta {
+      margin-top: 4px;
+    }
+
+    .chat-messages {
+      flex: 1;
+      overflow-y: auto;
+      padding: 16px;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    .chat-bubble {
+      max-width: 78%;
+      padding: 10px 14px;
+      border-radius: 14px;
+      font-size: var(--text-caption);
+      line-height: 1.4;
+      word-break: break-word;
+    }
+
+    .chat-bubble.inbound {
+      align-self: flex-start;
+      background: var(--color-white);
+      border: 1px solid var(--color-stone-mist);
+      color: var(--color-midnight-ink);
+    }
+
+    .chat-bubble.outbound {
+      align-self: flex-end;
+      background: var(--color-deep-forest-teal);
+      color: var(--color-white);
+    }
+
+    .chat-bubble-time {
+      display: block;
+      margin-top: 6px;
+      font-size: 11px;
+      opacity: 0.7;
+    }
+
+    .chat-compose {
+      display: flex;
+      gap: 8px;
+      padding: 12px;
+      border-top: 1px solid var(--color-stone-mist);
+      background: var(--color-white);
+    }
+
+    .chat-compose input,
+    .chat-compose textarea {
+      flex: 1;
+      font-family: var(--font-figtree);
+      font-size: var(--text-caption);
+      border: 1px solid var(--color-stone-mist);
+      border-radius: var(--radius-smallbadges);
+      padding: 10px 12px;
+      resize: none;
+      min-height: 42px;
+      max-height: 96px;
+    }
+
+    .chat-compose-new {
+      display: flex;
+      gap: 8px;
+      padding: 10px 12px;
+      border-bottom: 1px solid var(--color-stone-mist);
+      background: var(--color-white);
+    }
+
+    .chat-compose-new input {
+      flex: 1;
+      font-family: var(--font-figtree);
+      font-size: var(--text-caption);
+      border: 1px solid var(--color-stone-mist);
+      border-radius: var(--radius-smallbadges);
+      padding: 8px 10px;
+    }
+
     .toast {
       position: fixed;
       bottom: 24px;
@@ -393,8 +563,8 @@
   </div>
 
   <section class="hero">
-    <h1><span class="muted">Inbound</span> <span class="accent">messages</span></h1>
-    <p>Read-only view of SMS received on your pool numbers. Data comes from the message store — no AWS login required on this server.</p>
+    <h1><span class="muted">SMS</span> <span class="accent">inbox</span></h1>
+    <p>View and reply to SMS on your pool numbers. Click a number to open its chat portal.</p>
   </section>
 
   <main class="layout">
@@ -414,8 +584,8 @@
     </aside>
 
     <section class="card">
-      <div class="badge">Inbox</div>
-      <h2>Messages</h2>
+      <div class="badge" id="panel-badge">Inbox</div>
+      <h2 id="panel-title">Messages</h2>
       <div id="messages-wrap"><p class="empty">Loading…</p></div>
     </section>
   </main>
@@ -432,8 +602,21 @@
     let nicknameLookup = new Map();
     let regionLookup = new Map();
     let selectedFilter = null;
+    let selectedRemote = null;
     let allMessages = [];
     let phoneSort = phoneSortEl?.value || 'date-added';
+
+    function messagePool(m) {
+      return m.poolNumber || (m.direction === 'outbound' ? m.fromNumber : m.toNumber);
+    }
+
+    function messageRemote(m) {
+      return m.remoteNumber || (m.direction === 'outbound' ? m.toNumber : m.fromNumber);
+    }
+
+    function messageDirection(m) {
+      return m.direction === 'outbound' ? 'outbound' : 'inbound';
+    }
 
     async function apiFetch(url, options) {
       const res = await fetch(url, options);
@@ -484,12 +667,12 @@
     function filterLabel() {
       if (!selectedFilter) return 'Showing <strong>all messages</strong>';
       const nickname = nicknameFor(selectedFilter);
-      return `Showing messages to <strong>${escapeHtml(nickname)}</strong>`;
+      return `SMS portal for <strong>${escapeHtml(nickname)}</strong>`;
     }
 
     function filteredMessages(messages) {
       if (!selectedFilter) return messages;
-      return messages.filter((m) => m.toNumber === selectedFilter);
+      return messages.filter((m) => messagePool(m) === selectedFilter);
     }
 
     function updateStatus(messages) {
@@ -504,12 +687,40 @@
     function lastMessagedByPhone(messages) {
       const map = new Map();
       for (const m of messages) {
-        const current = map.get(m.toNumber);
+        const pool = messagePool(m);
+        const current = map.get(pool);
         if (!current || m.receivedAt > current) {
-          map.set(m.toNumber, m.receivedAt);
+          map.set(pool, m.receivedAt);
         }
       }
       return map;
+    }
+
+    function chatsForPool(poolNumber, messages) {
+      const byRemote = new Map();
+      for (const m of messages) {
+        if (messagePool(m) !== poolNumber) continue;
+        const remote = messageRemote(m);
+        if (!remote) continue;
+        const existing = byRemote.get(remote);
+        if (!existing || m.receivedAt > existing.lastAt) {
+          byRemote.set(remote, {
+            remoteNumber: remote,
+            lastAt: m.receivedAt,
+            preview: m.messageBody,
+            count: (existing?.count ?? 0) + 1,
+          });
+        } else {
+          existing.count += 1;
+        }
+      }
+      return [...byRemote.values()].sort((a, b) => b.lastAt.localeCompare(a.lastAt));
+    }
+
+    function threadMessages(poolNumber, remoteNumber, messages) {
+      return messages
+        .filter((m) => messagePool(m) === poolNumber && messageRemote(m) === remoteNumber)
+        .sort((a, b) => a.receivedAt.localeCompare(b.receivedAt));
     }
 
     function sortPhoneNumbers(numbers, sortMode, lastMessaged) {
@@ -594,6 +805,7 @@
       }
       if (event.target.closest('[data-action="filter-all"]')) {
         selectedFilter = null;
+        selectedRemote = null;
         renderPhones(phoneNumbers);
         renderMessages(allMessages);
         updateStatus(allMessages);
@@ -602,6 +814,7 @@
       const item = event.target.closest('.phone-item[data-phone]');
       if (!item) return;
       selectedFilter = item.dataset.phone;
+      selectedRemote = null;
       renderPhones(phoneNumbers);
       renderMessages(allMessages);
       updateStatus(allMessages);
@@ -649,18 +862,91 @@
       }
     });
 
+    function renderChatPortal(messages) {
+      const chats = chatsForPool(selectedFilter, messages);
+      if (selectedRemote && !chats.some((c) => c.remoteNumber === selectedRemote)) {
+        // Keep selected remote even if no messages yet (new draft chat)
+      } else if (!selectedRemote && chats.length) {
+        selectedRemote = chats[0].remoteNumber;
+      }
+
+      const contactItems = chats.map((c) => `
+        <li class="chat-contact${selectedRemote === c.remoteNumber ? ' active' : ''}" data-action="select-chat" data-remote="${escapeHtml(c.remoteNumber)}">
+          <div class="chat-contact-name">${phoneCopyHtml(c.remoteNumber)}</div>
+          <div class="chat-contact-preview">${escapeHtml(c.preview || '')}</div>
+          <div class="chat-contact-preview">${escapeHtml(fmtDate(c.lastAt))} · ${c.count} msg${c.count === 1 ? '' : 's'}</div>
+        </li>
+      `).join('');
+
+      const thread = selectedRemote
+        ? threadMessages(selectedFilter, selectedRemote, messages)
+        : [];
+
+      const threadBody = !selectedRemote
+        ? '<p class="empty">Select a chat or start a new one.</p>'
+        : thread.length
+          ? thread.map((m) => `
+              <div class="chat-bubble ${messageDirection(m)}">
+                ${escapeHtml(m.messageBody)}
+                <span class="chat-bubble-time">${escapeHtml(fmtDate(m.receivedAt))}</span>
+              </div>
+            `).join('')
+          : '<p class="empty">No messages yet — send the first reply below.</p>';
+
+      const threadHeader = selectedRemote
+        ? `<strong>${phoneCopyHtml(selectedRemote)}</strong><div class="phone-meta">via ${escapeHtml(nicknameFor(selectedFilter))}</div>`
+        : `<strong>New chat</strong><div class="phone-meta">Pick a contact or enter a number</div>`;
+
+      return `
+        <p class="filter-label">${filterLabel()}</p>
+        <div class="chat-portal">
+          <div class="chat-contacts">
+            <div class="chat-contacts-header">
+              <span>Chats</span>
+              <span>${chats.length}</span>
+            </div>
+            <div class="chat-compose-new">
+              <input id="new-chat-number" type="tel" placeholder="+1…" aria-label="New chat phone number" />
+              <button class="btn btn-ghost btn-small" type="button" data-action="start-chat">Open</button>
+            </div>
+            <ul class="chat-contact-list">
+              ${contactItems || '<li class="empty" style="padding:14px">No chats yet.</li>'}
+            </ul>
+          </div>
+          <div class="chat-thread">
+            <div class="chat-thread-header">${threadHeader}</div>
+            <div class="chat-messages" id="chat-messages">${threadBody}</div>
+            <form class="chat-compose" id="chat-compose-form">
+              <textarea id="chat-compose-input" rows="1" placeholder="${selectedRemote ? 'Type a reply…' : 'Select a chat first'}" ${selectedRemote ? '' : 'disabled'}></textarea>
+              <button class="btn btn-primary btn-small" type="submit" ${selectedRemote ? '' : 'disabled'}>Send</button>
+            </form>
+          </div>
+        </div>
+      `;
+    }
+
     function renderMessages(messages) {
       allMessages = messages;
       renderPhones(phoneNumbers);
+      const panelBadge = document.getElementById('panel-badge');
+      const panelTitle = document.getElementById('panel-title');
+
+      if (selectedFilter) {
+        panelBadge.textContent = 'Portal';
+        panelTitle.textContent = nicknameFor(selectedFilter);
+        messagesWrap.innerHTML = renderChatPortal(messages);
+        const threadEl = document.getElementById('chat-messages');
+        if (threadEl) threadEl.scrollTop = threadEl.scrollHeight;
+        return;
+      }
+
+      panelBadge.textContent = 'Inbox';
+      panelTitle.textContent = 'Messages';
       const visible = filteredMessages(messages);
       const filterHtml = `<p class="filter-label">${filterLabel()}</p>`;
 
       if (!messages.length) {
         messagesWrap.innerHTML = filterHtml + '<p class="empty">No messages yet. Text one of your pool numbers to create an entry.</p>';
-        return;
-      }
-      if (!visible.length) {
-        messagesWrap.innerHTML = filterHtml + '<p class="empty">No messages for this number yet.</p>';
         return;
       }
       messagesWrap.innerHTML = filterHtml + `
@@ -678,13 +964,38 @@
               <tr>
                 <td>${fmtDate(m.receivedAt)}</td>
                 <td>${phoneCopyHtml(m.fromNumber)}</td>
-                <td>${escapeHtml(nicknameFor(m.toNumber))}<div class="phone-meta">${phoneCopyHtml(m.toNumber)}</div><div class="phone-meta">${escapeHtml(regionFor(m.toNumber))}</div></td>
+                <td>${escapeHtml(nicknameFor(messagePool(m)))}<div class="phone-meta">${phoneCopyHtml(messagePool(m))}</div><div class="phone-meta">${escapeHtml(regionFor(messagePool(m)))}</div></td>
                 <td class="message-body">${escapeHtml(m.messageBody)}</td>
               </tr>
             `).join('')}
           </tbody>
         </table>
       `;
+    }
+
+    async function sendChatMessage(messageBody) {
+      if (!selectedFilter || !selectedRemote) {
+        showToast('Select a chat first');
+        return;
+      }
+      const res = await apiFetch('/api/messages/send', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          fromNumber: selectedFilter,
+          toNumber: selectedRemote,
+          messageBody,
+        }),
+      });
+      if (!res.ok) {
+        const body = await res.json().catch(() => ({}));
+        throw new Error(body.error || 'Failed to send');
+      }
+      const { message } = await res.json();
+      allMessages = [message, ...allMessages];
+      renderMessages(allMessages);
+      updateStatus(allMessages);
+      showToast('Message sent');
     }
 
     function showBanner(text) {
@@ -715,14 +1026,15 @@
         }
 
         const { messages } = await messagesRes.json();
-        const { phoneNumbers } = await phonesRes.json();
+        const { phoneNumbers: phones } = await phonesRes.json();
 
-        if (selectedFilter && !phoneNumbers.some((p) => p.phoneNumber === selectedFilter)) {
+        if (selectedFilter && !phones.some((p) => p.phoneNumber === selectedFilter)) {
           selectedFilter = null;
+          selectedRemote = null;
         }
 
         updateStatus(messages);
-        renderPhones(phoneNumbers);
+        renderPhones(phones);
         renderMessages(messages);
       } catch (err) {
         statusEl.textContent = 'Error';
@@ -730,6 +1042,45 @@
         showToast(err.message || 'Failed to load');
       }
     }
+
+    messagesWrap.addEventListener('click', (event) => {
+      const contact = event.target.closest('[data-action="select-chat"]');
+      if (contact) {
+        selectedRemote = contact.dataset.remote;
+        renderMessages(allMessages);
+        return;
+      }
+      if (event.target.closest('[data-action="start-chat"]')) {
+        const input = document.getElementById('new-chat-number');
+        const raw = input?.value.trim() || '';
+        const number = raw.replace(/[^\d+]/g, '');
+        if (!number.startsWith('+') || number.length < 10) {
+          showToast('Enter a full number like +1…');
+          return;
+        }
+        selectedRemote = number;
+        renderMessages(allMessages);
+      }
+    });
+
+    messagesWrap.addEventListener('submit', async (event) => {
+      const form = event.target.closest('#chat-compose-form');
+      if (!form) return;
+      event.preventDefault();
+      const input = document.getElementById('chat-compose-input');
+      const text = input?.value.trim();
+      if (!text) return;
+      const btn = form.querySelector('button[type="submit"]');
+      try {
+        if (btn) btn.disabled = true;
+        await sendChatMessage(text);
+        if (input) input.value = '';
+      } catch (err) {
+        showToast(err.message || 'Failed to send');
+      } finally {
+        if (btn) btn.disabled = false;
+      }
+    });
 
     document.addEventListener('click', async (event) => {
       const btn = event.target.closest('[data-action="copy-phone"]');
