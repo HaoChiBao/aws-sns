@@ -22,7 +22,8 @@ export class InboundSmsStack extends cdk.Stack {
     super(scope, id, props);
 
     const phoneNumbers =
-      props?.phoneNumbers ?? '+12362051147,+18257730586,+12365065683,+12044100737,+18674701051';
+      props?.phoneNumbers ??
+      '+12362051147,+18257730586,+12365065683,+12044100737,+18674701051,+12044100753,+12044100811';
     const readerApiKey = props?.readerApiKey;
 
     const nicknamesTable = new dynamodb.Table(this, 'InboundSmsNicknamesTable', {
